@@ -1,84 +1,165 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl" data-theme="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>دليل تفريغ وترقيم التسجيلات الصوتية | MSA Audio Transcription Guidelines</title>
-  <meta name="description" content="الدليل المعياري الشامل وقواعد الترقيم والتوصيف لتفريغ التسجيلات الصوتية باللغة العربية الفصحى الحديثة (MSA Verbatim Transcription Guidelines)">
-  
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- App Stylesheet -->
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      دليل تفريغ وترقيم التسجيلات الصوتية | MSA Audio Transcription Guidelines
+    </title>
+    <meta
+      name="description"
+      content="الدليل المعياري الشامل وقواعد الترقيم والتوصيف لتفريغ التسجيلات الصوتية باللغة العربية الفصحى الحديثة (MSA Verbatim Transcription Guidelines)"
+    />
 
-  <!-- Ambient Glow Orbs -->
-  <div class="orb-glow orb-1"></div>
-  <div class="orb-glow orb-2"></div>
-  <div class="orb-glow orb-3"></div>
+    <!-- FontAwesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
 
-  <!-- ENHANCED GLASSMORTIC NAVBAR -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="#" class="brand">
-        <div class="brand-icon">
-          <i class="fas fa-microphone-alt"></i>
-        </div>
-        <div>
-          <div style="line-height: 1.25; font-size: 1.2rem;">مركز تفريغ الصوتيات المعياري</div>
-          <div style="font-size: 0.75rem; color: var(--accent-emerald-light); font-weight: 700; letter-spacing: 0.02em;">MSA Audio Transcription Standard</div>
-        </div>
-      </a>
+    <!-- App Stylesheet -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Ambient Glow Orbs -->
+    <div class="orb-glow orb-1"></div>
+    <div class="orb-glow orb-2"></div>
+    <div class="orb-glow orb-3"></div>
 
-      <!-- Quick Navigation Links -->
-      <ul class="nav-links">
-        <li><a href="#workflow-section" class="nav-link"><i class="fas fa-tasks"></i> خطوات العمل</a></li>
-        <li><a href="#worked-examples-section" class="nav-link"><i class="fas fa-check-double"></i> الأمثلة العملية</a></li>
-        <li><a href="#tags-section" class="nav-link"><i class="fas fa-tags"></i> دليل الوسوم</a></li>
-        <li><a href="#formatting-section" class="nav-link"><i class="fas fa-paragraph"></i> قواعد التنسيق</a></li>
-        <li><a href="#playground-section" class="nav-link"><i class="fas fa-keyboard"></i> مساحة التدريب</a></li>
-      </ul>
+    <!-- FLOATING LIGHT GLASSMORTIC NAVBAR -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="#" class="brand">
+          <div class="brand-icon">
+            <i class="fas fa-microphone-alt"></i>
+          </div>
+          <div>
+            <div style="line-height: 1.25; font-size: 1.2rem">
+              مركز تفريغ الصوتيات المعياري
+            </div>
+            <div
+              style="
+                font-size: 0.75rem;
+                color: #4338ca;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+              "
+            >
+              MSA Audio Transcription Standard
+            </div>
+          </div>
+        </a>
 
-      <div class="nav-controls">
-        <!-- View Mode Selector Pills -->
-        <div class="view-pills">
-          <button class="view-btn active" data-lang="ar">
-            <i class="fas fa-language"></i> العربية
-          </button>
-          <button class="view-btn" data-lang="en">
-            <i class="fas fa-globe"></i> English
-          </button>
-          <button class="view-btn" data-lang="dual">
-            <i class="fas fa-columns"></i> عرض مزدوج (Dual)
-          </button>
+        <!-- Quick Navigation Links -->
+        <ul class="nav-links">
+          <li>
+            <a href="#workflow-section" class="nav-link"
+              ><i class="fas fa-tasks"></i> خطوات العمل</a
+            >
+          </li>
+          <li>
+            <a href="#worked-examples-section" class="nav-link"
+              ><i class="fas fa-check-double"></i> الأمثلة العملية</a
+            >
+          </li>
+          <li>
+            <a href="#tags-section" class="nav-link"
+              ><i class="fas fa-tags"></i> دليل الوسوم</a
+            >
+          </li>
+          <li>
+            <a href="#formatting-section" class="nav-link"
+              ><i class="fas fa-paragraph"></i> قواعد التنسيق</a
+            >
+          </li>
+          <li>
+            <a href="#playground-section" class="nav-link"
+              ><i class="fas fa-keyboard"></i> مساحة التدريب</a
+            >
+          </li>
+        </ul>
+
+        <div class="nav-controls">
+          <!-- View Mode Selector Pills -->
+          <div class="view-pills">
+            <button class="view-btn active" data-lang="ar">
+              <i class="fas fa-language"></i> العربية
+            </button>
+            <button class="view-btn" data-lang="en">
+              <i class="fas fa-globe"></i> English
+            </button>
+            <button class="view-btn" data-lang="dual">
+              <i class="fas fa-columns"></i> عرض مزدوج (Dual)
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <!-- MAIN CONTENT CONTAINER -->
-  <main class="app-container" id="main-content-container">
-    <!-- Dynamic Content Rendered via app.js -->
-  </main>
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="app-container" id="main-content-container">
+      <!-- Dynamic Content Rendered via app.js -->
+    </main>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer-content">
-      <div style="display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--text-primary); font-size: 1.1rem;">
-        <i class="fas fa-shield-check" style="color: var(--accent-emerald);"></i>
-        Modern Standard Arabic (MSA) Audio Transcription & Annotation Hub
+    <!-- FOOTER WITH ADHAM KASEB CREDENTIALS & DIRECT WHATSAPP CHAT -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+          "
+        >
+          <i class="fas fa-shield-check" style="color: #6366f1"></i>
+          Modern Standard Arabic (MSA) Audio Transcription & Annotation Hub
+        </div>
+        <!-- Developer Credentials & Clickable WhatsApp Chat -->
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+            font-size: 0.95rem;
+          "
+        >
+          <span
+            >Developed with
+            <i class="fas fa-heart" style="color: #f43f5e"></i> by</span
+          >
+          <a
+            href="https://wa.me/201120610381"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="footer-whatsapp-link"
+          >
+            <i class="fas fa-user-check"></i> Adham Kaseb
+          </a>
+          <span>•</span>
+          <a
+            href="https://wa.me/201120610381"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="footer-whatsapp-link"
+          >
+            <i
+              class="fab fa-whatsapp"
+              style="color: #25d366; font-size: 1.1rem"
+            ></i>
+            +201120610381
+          </a>
+        </div>
       </div>
-      <div style="color: var(--text-secondary);">التفريغ الحرفي المعياري 100% • كتابة الأرقام بالكلمات • الوسوم المعتمدة بـ 10 وسوم قياسية</div>
-      <div style="font-size: 0.85rem; opacity: 0.7; font-family: var(--font-code);">
-        Aligned with Official Guidelines PDF • © 2026 Al-Fatatry System.
-      </div>
-    </div>
-  </footer>
+    </footer>
 
-  <!-- Scripts -->
-  <script src="data.js"></script>
-  <script src="app.js"></script>
-</body>
+    <!-- Scripts -->
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
 </html>

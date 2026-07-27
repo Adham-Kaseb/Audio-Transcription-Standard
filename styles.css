@@ -309,12 +309,13 @@ body.view-dual .dual-pane-en {
 .hero-title {
   font-size: 2.85rem;
   font-weight: 900;
-  line-height: 1.25;
+  line-height: 1.6;
+  padding: 0.5rem 0;
   margin-bottom: 1.25rem;
   background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 60%, #3b82f6 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: -0.02em;
 }
 
 .hero-subtitle {
@@ -438,7 +439,8 @@ body.view-dual .dual-pane-en {
   align-items: center;
   gap: 0.85rem;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  line-height: 1.55;
+  padding: 0.25rem 0;
 }
 
 .section-title i {

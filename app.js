@@ -2,11 +2,10 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   let currentLang = 'ar'; // 'ar', 'en', 'dual'
-  let currentTheme = localStorage.getItem('theme') || 'dark';
+  let currentTheme = localStorage.getItem('theme') || 'light';
 
   // Initialize UI Theme
   document.documentElement.setAttribute('data-theme', currentTheme);
-  updateThemeIcon(currentTheme);
 
   // Initialize Language & View Mode
   setLanguageMode(currentLang);
@@ -44,6 +43,24 @@ function setLanguageMode(lang) {
   renderPageContent();
 }
 
+// Practice Scenarios Dataset
+const PRACTICE_SCENARIOS = {
+  ar: [
+    { id: 1, title: "تمرين 1: التردد والحشو", heard: "آآ وين كنت؟ أريد البدء بالعمل.", target: "<fill> وين كنت؟ أريد البدء بالعمل." },
+    { id: 2, title: "تمرين 2: البداية الخاطئة", heard: "خلينا نلتقي السا- الساعة السادسة تماماً.", target: "خلينا نلتقي السا- الساعة السادسة تماماً." },
+    { id: 3, title: "تمرين 3: كتابة الأرقام", heard: "ولدت عام 1995 في مدينة القاهرة.", target: "ولدت عام ألف وتسعمئة وخمسة وتسعين في مدينة القاهرة." },
+    { id: 4, title: "تمرين 4: التداخل الشديد", heard: "أصوات متداخلة صاخبة غير مفهومة إطلاقاً.", target: "<crosstalk>" },
+    { id: 5, title: "تمرين 5: المقطع الأجنبي", heard: "قال لي bon appétit ثم انصرف.", target: "قال لي <foreign_start> bon appétit <foreign_end> ثم انصرف." }
+  ],
+  en: [
+    { id: 1, title: "Practice 1: Fillers", heard: "uh where was I? let me think.", target: "<fill> where was I? let me think." },
+    { id: 2, title: "Practice 2: False Start", heard: "let's meet at fi- at six thirty tonight.", target: "let's meet at fi- at six thirty tonight." },
+    { id: 3, title: "Practice 3: Spelled-Out Numbers", heard: "I was born in 1975.", target: "I was born in nineteen seventy five." },
+    { id: 4, title: "Practice 4: Severe Crosstalk", heard: "Multiple voices shouting completely unintelligible overlap.", target: "<crosstalk>" },
+    { id: 5, title: "Practice 5: Foreign Span", heard: "He said bon appétit and left.", target: "He said <foreign_start> bon appétit <foreign_end> and left." }
+  ]
+};
+
 // Render Page Content based on selected mode
 function renderPageContent() {
   const container = document.getElementById('main-content-container');
@@ -68,24 +85,6 @@ function renderPageContent() {
   attachInteractiveHandlers();
 }
 
-// Practice Scenarios Dataset
-const PRACTICE_SCENARIOS = {
-  ar: [
-    { id: 1, title: "تمرين 1: التردد والحشو", heard: "آآ وين كنت؟ أريد البدء بالعمل.", target: "<fill> وين كنت؟ أريد البدء بالعمل." },
-    { id: 2, title: "تمرين 2: البداية الخاطئة", heard: "خلينا نلتقي السا- الساعة السادسة تماماً.", target: "خلينا نلتقي السا- الساعة السادسة تماماً." },
-    { id: 3, title: "تمرين 3: كتابة الأرقام", heard: "ولدت عام 1995 في مدينة القاهرة.", target: "ولدت عام ألف وتسعمئة وخمسة وتسعين في مدينة القاهرة." },
-    { id: 4, title: "تمرين 4: التداخل الشديد", heard: "أصوات متداخلة صاخبة غير مفهومة إطلاقاً.", target: "<crosstalk>" },
-    { id: 5, title: "تمرين 5: المقطع الأجنبي", heard: "قال لي bon appétit ثم انصرف.", target: "قال لي <foreign_start> bon appétit <foreign_end> ثم انصرف." }
-  ],
-  en: [
-    { id: 1, title: "Practice 1: Fillers", heard: "uh where was I? let me think.", target: "<fill> where was I? let me think." },
-    { id: 2, title: "Practice 2: False Start", heard: "let's meet at fi- at six thirty tonight.", target: "let's meet at fi- at six thirty tonight." },
-    { id: 3, title: "Practice 3: Spelled-Out Numbers", heard: "I was born in 1975.", target: "I was born in nineteen seventy five." },
-    { id: 4, title: "Practice 4: Severe Crosstalk", heard: "Multiple voices shouting completely unintelligible overlap.", target: "<crosstalk>" },
-    { id: 5, title: "Practice 5: Foreign Span", heard: "He said bon appétit and left.", target: "He said <foreign_start> bon appétit <foreign_end> and left." }
-  ]
-};
-
 // Generate Full HTML Pane for a given language ('ar' or 'en')
 function renderFullPaneContent(lang) {
   const isAr = lang === 'ar';
@@ -103,10 +102,10 @@ function renderFullPaneContent(lang) {
 
       <!-- Stat Badges Row -->
       <div class="hero-stats-row">
-        <div class="stat-pill"><i class="fas fa-check-circle"></i> ${isAr ? 'تفريغ حرفي 100%' : '100% Verbatim'}</div>
-        <div class="stat-pill"><i class="fas fa-tags"></i> ${isAr ? '10 وسوم قياسية' : '10 Standard Tags'}</div>
-        <div class="stat-pill"><i class="fas fa-tasks"></i> ${isAr ? 'خطة 5 خطوات' : '5-Step Workflow'}</div>
-        <div class="stat-pill"><i class="fas fa-font"></i> ${isAr ? 'كتابة الأرقام حروفاً' : 'Spelled-Out Numbers'}</div>
+        <div class="stat-pill"><i class="fas fa-check-circle" style="color: #6366f1;"></i> ${isAr ? 'تفريغ حرفي 100%' : '100% Verbatim'}</div>
+        <div class="stat-pill"><i class="fas fa-tags" style="color: #3b82f6;"></i> ${isAr ? '10 وسوم قياسية' : '10 Standard Tags'}</div>
+        <div class="stat-pill"><i class="fas fa-tasks" style="color: #8b5cf6;"></i> ${isAr ? 'خطة 5 خطوات' : '5-Step Workflow'}</div>
+        <div class="stat-pill"><i class="fas fa-font" style="color: #ff6b4a;"></i> ${isAr ? 'كتابة الأرقام حروفاً' : 'Spelled-Out Numbers'}</div>
       </div>
 
       <!-- Core Principles Cards -->
@@ -147,7 +146,7 @@ function renderFullPaneContent(lang) {
                 ${step.items.map(item => `
                   <div class="workflow-item">
                     <div class="workflow-trigger">
-                      <i class="fas fa-play-circle" style="color: var(--accent-emerald);"></i> ${item.trigger[lang]}
+                      <i class="fas fa-play-circle" style="color: #6366f1;"></i> ${item.trigger[lang]}
                     </div>
                     <div class="workflow-action">${item.action[lang]}</div>
                     <div class="code-example-box">
@@ -277,25 +276,25 @@ function renderFullPaneContent(lang) {
 
       <div class="special-bento-grid">
         <!-- Bento Card 1: Stuttering, False Starts & Repetitions (Span 7) -->
-        <div class="special-card bento-card-lg-1" style="border-top: 4px solid var(--accent-emerald);">
+        <div class="special-card bento-card-lg-1" style="border-top: 4px solid #6366f1;">
           <div class="special-title"><i class="fas fa-cut"></i> ${data.special_rules[0].title[lang]}</div>
           <div style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.75rem;">
-            <div style="background: rgba(16, 185, 129, 0.08); border-radius: var(--radius-md); padding: 1rem; border: 1px solid rgba(16, 185, 129, 0.2);">
-              <span class="principle-badge" style="margin-bottom: 0.4rem; display: inline-block;">
+            <div style="background: #f0fdf4; border-radius: var(--radius-md); padding: 1rem; border: 1px solid #bbf7d0;">
+              <span class="principle-badge" style="color: #15803d; background: #dcfce7; border-color: #86efac; margin-bottom: 0.4rem; display: inline-block;">
                 <i class="fas fa-check"></i> ${isAr ? 'التأتأة (Stuttering)' : 'Stuttering'}
               </span>
               <p style="font-size: 0.95rem; color: var(--text-secondary);">${isAr ? data.special_rules[0].stutter_desc_ar : data.special_rules[0].stutter_desc_en}</p>
             </div>
 
-            <div style="background: rgba(245, 158, 11, 0.08); border-radius: var(--radius-md); padding: 1rem; border: 1px solid rgba(245, 158, 11, 0.2);">
-              <span class="principle-badge" style="color: var(--accent-amber); background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); margin-bottom: 0.4rem; display: inline-block;">
+            <div style="background: #fffbeb; border-radius: var(--radius-md); padding: 1rem; border: 1px solid #fde68a;">
+              <span class="principle-badge" style="color: #b45309; background: #fef3c7; border-color: #fde68a; margin-bottom: 0.4rem; display: inline-block;">
                 <i class="fas fa-strikethrough"></i> ${isAr ? 'البداية الخاطئة (False Start)' : 'False Start'}
               </span>
               <p style="font-size: 0.95rem; color: var(--text-secondary);">${isAr ? data.special_rules[0].false_start_desc_ar : data.special_rules[0].false_start_desc_en}</p>
             </div>
 
-            <div style="background: rgba(99, 102, 241, 0.08); border-radius: var(--radius-md); padding: 1rem; border: 1px solid rgba(99, 102, 241, 0.2);">
-              <span class="principle-badge" style="color: var(--accent-indigo); background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.3); margin-bottom: 0.4rem; display: inline-block;">
+            <div style="background: #eeecfd; border-radius: var(--radius-md); padding: 1rem; border: 1px solid rgba(99, 102, 241, 0.25);">
+              <span class="principle-badge" style="color: #4338ca; background: #e0e7ff; border-color: #c7d2fe; margin-bottom: 0.4rem; display: inline-block;">
                 <i class="fas fa-redo"></i> ${isAr ? 'التكرار الحقيقي (Deliberate Repetition)' : 'Deliberate Repetition'}
               </span>
               <p style="font-size: 0.95rem; color: var(--text-secondary);">${isAr ? data.special_rules[0].repetition_desc_ar : data.special_rules[0].repetition_desc_en}</p>
@@ -304,27 +303,27 @@ function renderFullPaneContent(lang) {
         </div>
 
         <!-- Bento Card 2: Multiple Speaker Cases 4.11 (Span 5) -->
-        <div class="special-card bento-card-lg-2" style="border-top: 4px solid var(--accent-cyan);">
+        <div class="special-card bento-card-lg-2" style="border-top: 4px solid #3b82f6;">
           <div class="special-title"><i class="fas fa-users"></i> ${isAr ? 'حالات تداخل المتحدثين (Section 4.11)' : 'Multiple Speaker Cases (4.11)'}</div>
           <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem;">
-            <div style="background: var(--bg-dark-surface); border-radius: var(--radius-sm); padding: 0.85rem; border: 1px solid var(--border-color);">
-              <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 0.3rem;">Case A (متحدث مفهوم والآخر غير مفهوم)</div>
+            <div style="background: #f8fafc; border-radius: var(--radius-sm); padding: 0.85rem; border: 1px solid var(--border-color);">
+              <div style="font-weight: 800; font-size: 0.85rem; color: #2563eb; margin-bottom: 0.3rem;">Case A (متحدث مفهوم والآخر غير مفهوم)</div>
               <div class="code-example-box" style="font-size: 0.82rem; flex-direction: column; align-items: flex-start; gap: 4px;">
                 <span>Spk 1: hello &lt;background_speech&gt; how are you</span>
                 <span>Spk 2: &lt;background_speech&gt; &lt;unintelligible&gt;</span>
               </div>
             </div>
 
-            <div style="background: var(--bg-dark-surface); border-radius: var(--radius-sm); padding: 0.85rem; border: 1px solid var(--border-color);">
-              <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-emerald-light); margin-bottom: 0.3rem;">Case B (كلا المتحدثين مفهوم)</div>
+            <div style="background: #f8fafc; border-radius: var(--radius-sm); padding: 0.85rem; border: 1px solid var(--border-color);">
+              <div style="font-weight: 800; font-size: 0.85rem; color: #16a34a; margin-bottom: 0.3rem;">Case B (كلا المتحدثين مفهوم)</div>
               <div class="code-example-box" style="font-size: 0.82rem; flex-direction: column; align-items: flex-start; gap: 4px;">
                 <span>Spk 1: hello &lt;background_speech&gt; how are you</span>
                 <span>Spk 2: very well &lt;background_speech&gt; thanks</span>
               </div>
             </div>
 
-            <div style="background: var(--bg-dark-surface); border-radius: var(--radius-sm); padding: 0.85rem; border: 1px solid var(--border-color);">
-              <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-rose); margin-bottom: 0.3rem;">Case C (تداخل شديد)</div>
+            <div style="background: #f8fafc; border-radius: var(--radius-sm); padding: 0.85rem; border: 1px solid var(--border-color);">
+              <div style="font-weight: 800; font-size: 0.85rem; color: #dc2626; margin-bottom: 0.3rem;">Case C (تداخل شديد)</div>
               <div class="code-example-box" style="font-size: 0.82rem;">
                 <span>Segment: &lt;crosstalk&gt;</span>
               </div>
@@ -333,19 +332,19 @@ function renderFullPaneContent(lang) {
         </div>
 
         <!-- Bento Card 3: Mispronounced Words (Span 4) -->
-        <div class="special-card bento-card-sm-1" style="border-top: 4px solid var(--accent-purple);">
+        <div class="special-card bento-card-sm-1" style="border-top: 4px solid #8b5cf6;">
           <div class="special-title"><i class="fas fa-spell-check"></i> ${data.special_rules[1].title[lang]}</div>
           <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.6;">${isAr ? data.special_rules[1].rule_ar : data.special_rules[1].rule_en}</p>
         </div>
 
         <!-- Bento Card 4: Singing & Music (Span 4) -->
-        <div class="special-card bento-card-sm-2" style="border-top: 4px solid var(--accent-indigo);">
+        <div class="special-card bento-card-sm-2" style="border-top: 4px solid #6366f1;">
           <div class="special-title"><i class="fas fa-music"></i> ${data.special_rules[2].title[lang]}</div>
           <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.6;">${isAr ? data.special_rules[2].rule_ar : data.special_rules[2].rule_en}</p>
         </div>
 
         <!-- Bento Card 5: Discourse Markers (Span 4) -->
-        <div class="special-card bento-card-sm-3" style="border-top: 4px solid var(--accent-amber);">
+        <div class="special-card bento-card-sm-3" style="border-top: 4px solid #ff6b4a;">
           <div class="special-title"><i class="fas fa-comments"></i> ${data.special_rules[3].title[lang]}</div>
           <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.6;">${isAr ? data.special_rules[3].rule_ar : data.special_rules[3].rule_en}</p>
         </div>
@@ -363,20 +362,20 @@ function renderFullPaneContent(lang) {
             ${isAr ? 'انقر على زر الوسم (+) لإدراجه مباشرة في النص واختبار القواعد تلقائياً' : 'Click any tag button (+ <tag>) to insert it directly into the text for live practice'}
           </div>
         </div>
-        <span style="font-size: 0.88rem; color: var(--accent-emerald-light); font-weight: 800; background: rgba(16, 185, 129, 0.15); padding: 6px 14px; border-radius: 99px; border: 1px solid rgba(16, 185, 129, 0.3);">
+        <span style="font-size: 0.88rem; color: #4338ca; font-weight: 800; background: #eeecfd; padding: 6px 14px; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.25);">
           <i class="fas fa-robot"></i> ${isAr ? 'فحص آلي فوري' : 'Live PDF Rule Checker'}
         </span>
       </div>
 
       <!-- Practice Scenarios Selector -->
       <div style="margin-bottom: 1.25rem;">
-        <div style="font-size: 0.85rem; font-weight: 800; color: var(--accent-teal); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px;">
+        <div style="font-size: 0.85rem; font-weight: 800; color: #4338ca; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px;">
           <i class="fas fa-dumbbell"></i> ${isAr ? 'اختر تمريناً تطبيقياً للتدريب:' : 'Select a practice exercise scenario:'}
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
           ${scenarios.map(sc => `
-            <button class="copy-btn" onclick="loadPracticeScenario('${sc.heard.replace(/'/g, "\\'")}')" style="font-size: 0.82rem; font-weight: 700; border-color: rgba(20, 184, 166, 0.3);">
-              <i class="fas fa-play" style="font-size: 0.75rem; color: var(--accent-teal);"></i> ${sc.title}
+            <button class="copy-btn" onclick="loadPracticeScenario('${sc.heard.replace(/'/g, "\\'")}')" style="font-size: 0.82rem; font-weight: 700;">
+              <i class="fas fa-play" style="font-size: 0.75rem; color: #6366f1;"></i> ${sc.title}
             </button>
           `).join('')}
         </div>
@@ -417,14 +416,14 @@ function renderFullPaneContent(lang) {
         <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<cut-off>')">
           <i class="fas fa-plus"></i> <code>&lt;cut-off&gt;</code>
         </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('السا-')" style="color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.35);">
+        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('السا-')" style="color: #b45309; background: #fffbeb; border-color: #fde68a;">
           <i class="fas fa-plus"></i> <code>السا-</code> (${isAr ? 'شرطة قطع' : 'cut hyphen'})
         </button>
       </div>
 
       <!-- Heard Prompt Alert Banner -->
-      <div id="heard-prompt-banner" style="display: none; background: rgba(20, 184, 166, 0.12); border: 1px solid rgba(20, 184, 166, 0.3); border-radius: var(--radius-sm); padding: 10px 16px; margin-bottom: 1rem; color: var(--accent-emerald-light); font-size: 0.95rem; font-weight: 700;">
-        <i class="fas fa-headphones"></i> <span id="heard-prompt-text"></span>
+      <div id="heard-prompt-banner" style="display: none; background: #eeecfd; border: 1px solid rgba(99, 102, 241, 0.25); border-radius: var(--radius-sm); padding: 12px 18px; margin-bottom: 1rem; color: #312e81; font-size: 0.95rem; font-weight: 700;">
+        <i class="fas fa-headphones" style="color: #6366f1;"></i> <span id="heard-prompt-text"></span>
       </div>
 
       <textarea id="playground-editor" class="playground-textarea" placeholder="${isAr ? 'اكتب أو ألصق نص التفريغ هنا للتأكد من القواعد والأرقام والشرطات والوسوم...' : 'Type or paste transcript here to test compliance with PDF rules...'}" oninput="validatePlaygroundText()"></textarea>
@@ -438,7 +437,7 @@ function renderFullPaneContent(lang) {
         </div>
 
         <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 700;">
-          <span id="stat-words" style="color: var(--accent-emerald-light);">0</span> ${isAr ? 'كلمة' : 'words'} | <span id="stat-tags" style="color: var(--accent-cyan);">0</span> ${isAr ? 'وسم' : 'tags'}
+          <span id="stat-words" style="color: #4338ca;">0</span> ${isAr ? 'كلمة' : 'words'} | <span id="stat-tags" style="color: #3b82f6;">0</span> ${isAr ? 'وسم' : 'tags'}
         </div>
       </div>
     </section>
@@ -447,30 +446,12 @@ function renderFullPaneContent(lang) {
 
 // Event Bindings
 function bindEvents() {
-  // Theme Toggle Button
-  const themeBtn = document.getElementById('theme-toggle-btn');
-  if (themeBtn) {
-    themeBtn.addEventListener('click', () => {
-      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', currentTheme);
-      localStorage.setItem('theme', currentTheme);
-      updateThemeIcon(currentTheme);
-    });
-  }
-
   // Language View Mode Selector Buttons
   document.querySelectorAll('.view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       setLanguageMode(btn.dataset.lang);
     });
   });
-}
-
-function updateThemeIcon(theme) {
-  const icon = document.querySelector('#theme-toggle-btn i');
-  if (icon) {
-    icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-  }
 }
 
 // Attach interactive handlers after HTML render
@@ -536,7 +517,7 @@ function showToast(msg) {
 
   const toast = document.createElement('div');
   toast.className = 'toast';
-  toast.innerHTML = `<i class="fas fa-check-circle" style="color: var(--accent-emerald);"></i> <span>${msg}</span>`;
+  toast.innerHTML = `<i class="fas fa-check-circle" style="color: #6366f1;"></i> <span>${msg}</span>`;
 
   container.appendChild(toast);
 
