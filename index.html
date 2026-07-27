@@ -92,12 +92,73 @@
       </div>
     </nav>
 
+    <!-- FLOATING SIDE NAVIGATOR ON SCROLL -->
+    <aside class="side-nav" id="side-nav">
+      <div class="side-nav-inner">
+        <a
+          href="#video-section"
+          class="side-nav-item"
+          data-tooltip="فيديو نيفو"
+        >
+          <i class="fab fa-youtube" style="color: #ff0000"></i>
+        </a>
+        <a
+          href="#workflow-section"
+          class="side-nav-item"
+          data-tooltip="خطوات العمل"
+        >
+          <i class="fas fa-tasks"></i>
+        </a>
+        <a
+          href="#worked-examples-section"
+          class="side-nav-item"
+          data-tooltip="الأمثلة العملية"
+        >
+          <i class="fas fa-check-double"></i>
+        </a>
+        <a
+          href="#tags-section"
+          class="side-nav-item"
+          data-tooltip="دليل الوسوم"
+        >
+          <i class="fas fa-tags"></i>
+        </a>
+        <a
+          href="#formatting-section"
+          class="side-nav-item"
+          data-tooltip="قواعد التنسيق"
+        >
+          <i class="fas fa-paragraph"></i>
+        </a>
+        <a
+          href="#special-section"
+          class="side-nav-item"
+          data-tooltip="الحالات التفصيلية"
+        >
+          <i class="fas fa-layer-group"></i>
+        </a>
+        <a
+          href="#playground-section"
+          class="side-nav-item"
+          data-tooltip="مساحة التدريب"
+        >
+          <i class="fas fa-keyboard"></i>
+        </a>
+        <button
+          class="side-nav-item side-nav-top-btn"
+          onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+          data-tooltip="الرجوع للأعلى"
+        >
+          <i class="fas fa-arrow-up"></i>
+        </button>
+      </div>
+    </aside>
+
     <!-- MAIN CONTENT CONTAINER -->
     <main class="app-container" id="main-content-container">
       <!-- Dynamic Content Rendered via app.js -->
     </main>
 
-    <!-- FOOTER WITH ADHAM KASEB CREDENTIALS & DIRECT WHATSAPP CHAT -->
     <footer class="footer">
       <div class="footer-content">
         <div
@@ -126,7 +187,7 @@
             </div>
             <div class="dev-info">
               <div class="dev-name">
-                أدهم كاسب (Adham Kaseb)
+                أدهم كاسب
                 <i class="fas fa-check-circle dev-verified-icon"></i>
               </div>
               <div class="dev-role">إعداد وتهيئة</div>
