@@ -1,11 +1,34 @@
 // Application Logic & Dynamic Renderer aligned with Official Arabic & English PDFs
 
+let lenis = null;
+
+function initLenis() {
+  if (typeof Lenis !== 'undefined') {
+    lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      smoothTouch: false
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   let currentLang = 'ar'; // 'ar', 'en', 'dual'
   let currentTheme = localStorage.getItem('theme') || 'light';
 
   // Initialize UI Theme
   document.documentElement.setAttribute('data-theme', currentTheme);
+
+  // Initialize Lenis Smooth Scroll
+  initLenis();
 
   // Initialize Language & View Mode
   setLanguageMode(currentLang);
@@ -120,6 +143,42 @@ function renderFullPaneContent(lang) {
             <p class="principle-desc">${rule.desc[lang]}</p>
           </div>
         `).join('')}
+      </div>
+    </section>
+
+    <!-- NEEVO PLATFORM VIDEO TUTORIAL SECTION -->
+    <section class="video-section" id="video-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fab fa-youtube" style="color: #ff0000;"></i> ${isAr ? 'فيديو توضيحي لمنصة نيفو (Neevo Platform Tutorial)' : 'Neevo Platform Video Tutorial'}
+        </h2>
+        <span class="principle-badge" style="background: #fff1f2; color: #e11d48; border-color: #fecdd3;">
+          <i class="fas fa-play-circle"></i> ${isAr ? 'شرح عملي تطبيقي' : 'Practical Video Demo'}
+        </span>
+      </div>
+
+      <div class="video-player-card">
+        <div class="video-aspect-container">
+          <iframe 
+            src="https://www.youtube-nocookie.com/embed/H3YokTyFACQ?rel=0&modestbranding=1" 
+            title="Neevo Platform Audio Transcription Tutorial" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; webshare" 
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <div class="video-info-bar">
+          <div class="video-desc">
+            <i class="fas fa-info-circle" style="color: #6366f1; font-size: 1.1rem;"></i>
+            <span>${isAr ? 'يعرض هذا الفيديو الشرح التوضيحي المباشر لكيفية العمل والتعامل مع المهام في منصة Neevo وتطبيق قواعد التفريغ المعيارية.' : 'This video demonstrates the practical workflow, task execution, and guidelines application on the Neevo platform.'}</span>
+          </div>
+
+          <a href="https://www.youtube.com/watch?v=H3YokTyFACQ" target="_blank" rel="noopener noreferrer" class="youtube-direct-link">
+            <i class="fab fa-youtube" style="color: #ff0000; font-size: 1.2rem;"></i>
+            <span>${isAr ? 'مشاهدة الفيديو على YouTube' : 'Watch Video on YouTube'}</span>
+            <i class="fas fa-external-link-alt" style="font-size: 0.8rem;"></i>
+          </a>
+        </div>
       </div>
     </section>
 
@@ -276,7 +335,7 @@ function renderFullPaneContent(lang) {
 
       <div class="special-bento-grid">
         <!-- Bento Card 1: Stuttering, False Starts & Repetitions (Span 7) -->
-        <div class="special-card bento-card-lg-1" style="border-top: 4px solid #6366f1;">
+        <div class="special-card bento-card-lg-1">
           <div class="special-title"><i class="fas fa-cut"></i> ${data.special_rules[0].title[lang]}</div>
           <div style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.75rem;">
             <div style="background: #f0fdf4; border-radius: var(--radius-md); padding: 1rem; border: 1px solid #bbf7d0;">
@@ -303,7 +362,7 @@ function renderFullPaneContent(lang) {
         </div>
 
         <!-- Bento Card 2: Multiple Speaker Cases 4.11 (Span 5) -->
-        <div class="special-card bento-card-lg-2" style="border-top: 4px solid #3b82f6;">
+        <div class="special-card bento-card-lg-2">
           <div class="special-title"><i class="fas fa-users"></i> ${isAr ? 'حالات تداخل المتحدثين (Section 4.11)' : 'Multiple Speaker Cases (4.11)'}</div>
           <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem;">
             <div style="background: #f8fafc; border-radius: var(--radius-sm); padding: 0.85rem; border: 1px solid var(--border-color);">
@@ -332,19 +391,19 @@ function renderFullPaneContent(lang) {
         </div>
 
         <!-- Bento Card 3: Mispronounced Words (Span 4) -->
-        <div class="special-card bento-card-sm-1" style="border-top: 4px solid #8b5cf6;">
+        <div class="special-card bento-card-sm-1">
           <div class="special-title"><i class="fas fa-spell-check"></i> ${data.special_rules[1].title[lang]}</div>
           <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.6;">${isAr ? data.special_rules[1].rule_ar : data.special_rules[1].rule_en}</p>
         </div>
 
         <!-- Bento Card 4: Singing & Music (Span 4) -->
-        <div class="special-card bento-card-sm-2" style="border-top: 4px solid #6366f1;">
+        <div class="special-card bento-card-sm-2">
           <div class="special-title"><i class="fas fa-music"></i> ${data.special_rules[2].title[lang]}</div>
           <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.6;">${isAr ? data.special_rules[2].rule_ar : data.special_rules[2].rule_en}</p>
         </div>
 
         <!-- Bento Card 5: Discourse Markers (Span 4) -->
-        <div class="special-card bento-card-sm-3" style="border-top: 4px solid #ff6b4a;">
+        <div class="special-card bento-card-sm-3">
           <div class="special-title"><i class="fas fa-comments"></i> ${data.special_rules[3].title[lang]}</div>
           <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.6;">${isAr ? data.special_rules[3].rule_ar : data.special_rules[3].rule_en}</p>
         </div>

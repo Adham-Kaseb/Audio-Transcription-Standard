@@ -17,6 +17,12 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
 
+    <!-- Lenis Smooth Scroll CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/lenis@1.1.18/dist/lenis.css"
+    />
+
     <!-- App Stylesheet -->
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -35,17 +41,7 @@
           </div>
           <div>
             <div style="line-height: 1.25; font-size: 1.2rem">
-              مركز تفريغ الصوتيات المعياري
-            </div>
-            <div
-              style="
-                font-size: 0.75rem;
-                color: #4338ca;
-                font-weight: 700;
-                letter-spacing: 0.02em;
-              "
-            >
-              MSA Audio Transcription Standard
+              مركز تفريغ الصوتيات
             </div>
           </div>
         </a>
@@ -117,48 +113,45 @@
           <i class="fas fa-shield-check" style="color: #6366f1"></i>
           Modern Standard Arabic (MSA) Audio Transcription & Annotation Hub
         </div>
-        <!-- Developer Credentials & Clickable WhatsApp Chat -->
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 0.75rem;
-            font-size: 0.95rem;
-          "
+        <!-- Developer Credentials Showcase Card -->
+        <a
+          href="https://wa.me/201120610381"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="developer-showcase-card"
         >
-          <span
-            >Developed with
-            <i class="fas fa-heart" style="color: #f43f5e"></i> by</span
-          >
-          <a
-            href="https://wa.me/201120610381"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="footer-whatsapp-link"
-          >
-            <i class="fas fa-user-check"></i> Adham Kaseb
-          </a>
-          <span>•</span>
-          <a
-            href="https://wa.me/201120610381"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="footer-whatsapp-link"
-          >
+          <div class="dev-card-header">
+            <div class="dev-avatar">
+              <i class="fas fa-code"></i>
+            </div>
+            <div class="dev-info">
+              <div class="dev-name">
+                أدهم كاسب (Adham Kaseb)
+                <i class="fas fa-check-circle dev-verified-icon"></i>
+              </div>
+              <div class="dev-role">إعداد وتهيئة</div>
+            </div>
+          </div>
+
+          <p class="dev-bio">
+            تم إعداد المنصة بتوافق 100% مع الدليل المعياري الرسمي، ومساحة تدريب
+            تفاعلية .
+          </p>
+
+          <div class="dev-cta-btn">
             <i
               class="fab fa-whatsapp"
-              style="color: #25d366; font-size: 1.1rem"
+              style="font-size: 1.25rem; color: #25d366"
             ></i>
-            +201120610381
-          </a>
-        </div>
+            <span>تواصل مباشر عبر واتساب (+201120610381)</span>
+            <i class="fas fa-arrow-left dev-arrow-icon"></i>
+          </div>
+        </a>
       </div>
     </footer>
 
     <!-- Scripts -->
+    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
     <script src="data.js"></script>
     <script src="app.js"></script>
   </body>
