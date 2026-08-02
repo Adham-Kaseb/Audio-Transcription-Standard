@@ -11,6 +11,36 @@
       content="الدليل المعياري الشامل وقواعد الترقيم والتوصيف لتفريغ التسجيلات الصوتية باللغة العربية الفصحى الحديثة (MSA Verbatim Transcription Guidelines)"
     />
 
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/favicon.png" />
+
+    <!-- Open Graph (OG) Meta Tags for Social Sharing -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="دليل تفريغ وترقيم التسجيلات الصوتية | MSA Audio Transcription Guidelines"
+    />
+    <meta
+      property="og:description"
+      content="الدليل المعياري الشامل وقواعد الترقيم والتوصيف لتفريغ التسجيلات الصوتية باللغة العربية الفصحى الحديثة مع حاسبة معدل الإنجاز وفاحص القواعد الفوري"
+    />
+    <meta property="og:image" content="og_banner_image_1785694923684.png" />
+    <meta property="og:image:width" content="1920" />
+    <meta property="og:image:height" content="1080" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="دليل تفريغ وترقيم التسجيلات الصوتية | MSA Audio Transcription Guidelines"
+    />
+    <meta
+      name="twitter:description"
+      content="الدليل المعياري الشامل وقواعد الترقيم والتوصيف لتفريغ التسجيلات الصوتية باللغة العربية الفصحى الحديثة"
+    />
+    <meta name="twitter:image" content="og_banner_image_1785694923684.png" />
+
     <!-- FontAwesome Icons -->
     <link
       rel="stylesheet"
@@ -46,47 +76,50 @@
           </div>
         </a>
 
-        <!-- Quick Navigation Links -->
-        <ul class="nav-links">
-          <li>
-            <a href="#workflow-section" class="nav-link"
-              ><i class="fas fa-tasks"></i> خطوات العمل</a
+        <!-- Navigation Links Dropdown Menu -->
+        <div class="nav-dropdown-wrapper" id="nav-dropdown-wrapper">
+          <button
+            class="nav-dropdown-btn"
+            id="nav-dropdown-btn"
+            onclick="toggleNavDropdown(event)"
+          >
+            <i class="fas fa-bars"></i>
+            <span>أقسام المنصة</span>
+            <i class="fas fa-chevron-down nav-dropdown-arrow"></i>
+          </button>
+          <div class="nav-dropdown-menu">
+            <a
+              href="#qa-search-section"
+              class="dropdown-item"
+              onclick="closeNavDropdown()"
             >
-          </li>
-          <li>
-            <a href="#worked-examples-section" class="nav-link"
-              ><i class="fas fa-check-double"></i> الأمثلة العملية</a
+              <i class="fas fa-search" style="color: #6366f1"></i>
+              <span>الإجابات الفورية</span>
+            </a>
+            <a
+              href="#text-checker-section"
+              class="dropdown-item"
+              onclick="closeNavDropdown()"
             >
-          </li>
-          <li>
-            <a href="#tags-section" class="nav-link"
-              ><i class="fas fa-tags"></i> دليل الوسوم</a
+              <i class="fas fa-spell-check" style="color: #3b82f6"></i>
+              <span>فاحص النصوص والقواعد</span>
+            </a>
+            <a
+              href="#faq-section"
+              class="dropdown-item"
+              onclick="closeNavDropdown()"
             >
-          </li>
-          <li>
-            <a href="#formatting-section" class="nav-link"
-              ><i class="fas fa-paragraph"></i> قواعد التنسيق</a
+              <i class="fas fa-question-circle" style="color: #8b5cf6"></i>
+              <span>مكتبة الأسئلة الشائعة</span>
+            </a>
+            <a
+              href="#calculator-section"
+              class="dropdown-item"
+              onclick="closeNavDropdown()"
             >
-          </li>
-          <li>
-            <a href="#playground-section" class="nav-link"
-              ><i class="fas fa-keyboard"></i> مساحة التدريب</a
-            >
-          </li>
-        </ul>
-
-        <div class="nav-controls">
-          <!-- View Mode Selector Pills -->
-          <div class="view-pills">
-            <button class="view-btn active" data-lang="ar">
-              <i class="fas fa-language"></i> العربية
-            </button>
-            <button class="view-btn" data-lang="en">
-              <i class="fas fa-globe"></i> English
-            </button>
-            <button class="view-btn" data-lang="dual">
-              <i class="fas fa-columns"></i> عرض مزدوج (Dual)
-            </button>
+              <i class="fas fa-calculator" style="color: #22c55e"></i>
+              <span>معدل الإنجاز </span>
+            </a>
           </div>
         </div>
       </div>
@@ -96,53 +129,32 @@
     <aside class="side-nav" id="side-nav">
       <div class="side-nav-inner">
         <a
-          href="#video-section"
-          class="side-nav-item"
-          data-tooltip="فيديو نيفو"
+          href="#qa-search-section"
+          class="side-nav-item active"
+          data-tooltip="البحث والإجابة الفورية"
         >
-          <i class="fab fa-youtube" style="color: #ff0000"></i>
+          <i class="fas fa-search"></i>
         </a>
         <a
-          href="#workflow-section"
+          href="#text-checker-section"
           class="side-nav-item"
-          data-tooltip="خطوات العمل"
+          data-tooltip="فاحص القواعد الفوري"
         >
-          <i class="fas fa-tasks"></i>
+          <i class="fas fa-spell-check"></i>
         </a>
         <a
-          href="#worked-examples-section"
+          href="#faq-section"
           class="side-nav-item"
-          data-tooltip="الأمثلة العملية"
+          data-tooltip="الأسئلة الشائعة"
         >
-          <i class="fas fa-check-double"></i>
+          <i class="fas fa-question-circle"></i>
         </a>
         <a
-          href="#tags-section"
+          href="#calculator-section"
           class="side-nav-item"
-          data-tooltip="دليل الوسوم"
+          data-tooltip=" معدل الإنجاز"
         >
-          <i class="fas fa-tags"></i>
-        </a>
-        <a
-          href="#formatting-section"
-          class="side-nav-item"
-          data-tooltip="قواعد التنسيق"
-        >
-          <i class="fas fa-paragraph"></i>
-        </a>
-        <a
-          href="#special-section"
-          class="side-nav-item"
-          data-tooltip="الحالات التفصيلية"
-        >
-          <i class="fas fa-layer-group"></i>
-        </a>
-        <a
-          href="#playground-section"
-          class="side-nav-item"
-          data-tooltip="مساحة التدريب"
-        >
-          <i class="fas fa-keyboard"></i>
+          <i class="fas fa-calculator"></i>
         </a>
         <button
           class="side-nav-item side-nav-top-btn"
@@ -200,11 +212,8 @@
           </p>
 
           <div class="dev-cta-btn">
-            <i
-              class="fab fa-whatsapp"
-              style="font-size: 1.25rem; color: #25d366"
-            ></i>
-            <span>تواصل مباشر عبر واتساب (+201120610381)</span>
+            <i class="fab fa-whatsapp whatsapp-icon"></i>
+            <span>تواصل مباشر عبر واتساب</span>
             <i class="fas fa-arrow-left dev-arrow-icon"></i>
           </div>
         </a>

@@ -162,6 +162,480 @@ function renderPageContent() {
   attachInteractiveHandlers();
 }
 
+// Arabic Natural Language Text Normalizer for Intelligent Search
+function normalizeArabicText(str) {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .replace(/[أإآآًٌٍَُِّْـ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي")
+    .replace(/[^\w\s\u0600-\u06FF]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Search Q&A Engine & Dynamic Matcher
+window.executeQASearch = function (userQuery) {
+  const inputEl = document.getElementById("qa-search-input");
+  if (inputEl && userQuery !== undefined) {
+    inputEl.value = userQuery;
+  }
+  const query = (
+    userQuery !== undefined ? userQuery : inputEl ? inputEl.value : ""
+  ).trim();
+  const resultsContainer = document.getElementById("qa-results-container");
+  if (!resultsContainer) return;
+
+  const db = GUIDELINES_DATA.qa_database || [];
+
+  if (!query) {
+    // Show featured top questions when empty
+    renderFeaturedQACards(db.slice(0, 4), resultsContainer, false);
+    return;
+  }
+
+  const normQuery = normalizeArabicText(query);
+  const queryTokens = normQuery.split(" ").filter((t) => t.length > 1);
+
+  const scoredResults = db
+    .map((item) => {
+      let score = 0;
+      const normQuestion = normalizeArabicText(item.question);
+      const normAnswer = normalizeArabicText(item.answer);
+      const normBadge = normalizeArabicText(item.badge);
+      const normTag = normalizeArabicText(item.tag);
+
+      // Exact phrase match in question or tag
+      if (normQuestion.includes(normQuery)) score += 50;
+      if (normAnswer.includes(normQuery)) score += 20;
+      if (normTag.includes(normQuery)) score += 40;
+
+      // Keyword matching
+      if (item.keywords) {
+        item.keywords.forEach((kw) => {
+          const normKw = normalizeArabicText(kw);
+          if (normQuery.includes(normKw) || normKw.includes(normQuery)) {
+            score += 35;
+          }
+          queryTokens.forEach((token) => {
+            if (normKw.includes(token)) score += 15;
+          });
+        });
+      }
+
+      // Token matching
+      queryTokens.forEach((token) => {
+        if (normQuestion.includes(token)) score += 12;
+        if (normAnswer.includes(token)) score += 6;
+        if (normBadge.includes(token) || normTag.includes(token)) score += 15;
+      });
+
+      return { item, score };
+    })
+    .filter((res) => res.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (scoredResults.length > 0) {
+    // Show ONLY the single top best match when user searches a specific question
+    const bestMatch = [scoredResults[0].item];
+    renderFeaturedQACards(bestMatch, resultsContainer, true, query);
+  } else {
+    // Render fallback matching message
+    renderNoResultsFallback(query, resultsContainer);
+  }
+};
+
+// Render Featured / Searched Q&A Answer Cards
+function renderFeaturedQACards(
+  items,
+  container,
+  isSearchResult = false,
+  query = "",
+) {
+  container.innerHTML = `
+    <div class="qa-results-header">
+      <div class="qa-results-title">
+        <i class="fas ${isSearchResult ? "fa-check-double" : "fa-star"}" style="color: ${isSearchResult ? "#22c55e" : "#6366f1"};"></i>
+        <span>${isSearchResult ? `تم تحليل السؤال! الإجابة المباشرة والدقيقة لسؤالك "${query}":` : "أبرز الأسئلة الشائعة والإجابات المباشرة السريعة:"}</span>
+      </div>
+      <span class="qa-count-badge" style="${isSearchResult ? "background: #dcfce7; color: #15803d; border-color: #86efac;" : ""}">
+        ${isSearchResult ? "الإجابة المطابقة 100%" : `${items.length} إجابة معتمدة`}
+      </span>
+    </div>
+    <div class="qa-cards-grid ${isSearchResult ? "single-result-grid" : ""}">
+      ${items
+        .map(
+          (item) => `
+        <div class="qa-card ${isSearchResult ? "highlighted-single-card" : ""}" id="${item.id}">
+          <div class="qa-card-header">
+            <span class="qa-category-pill"><i class="fas fa-tag"></i> ${item.categoryLabel}</span>
+            <span class="qa-rule-tag">${item.tag}</span>
+          </div>
+          <h3 class="qa-question"><i class="fas fa-question-circle" style="color: #6366f1;"></i> ${item.question}</h3>
+          
+          <div class="qa-answer-box">
+            <div class="qa-answer-label"><i class="fas fa-lightbulb" style="color: #f59e0b;"></i> الإجابة المباشرة والقاعدة الرسمية:</div>
+            <p class="qa-answer-text">${item.answer}</p>
+          </div>
+
+          <div class="qa-examples-split">
+            <div class="qa-ex-box qa-ex-do">
+              <div class="qa-ex-title"><i class="fas fa-check-circle"></i> الصياغة الصحيحة ✅</div>
+              <code>${item.dos}</code>
+            </div>
+            <div class="qa-ex-box qa-ex-dont">
+              <div class="qa-ex-title"><i class="fas fa-times-circle"></i> الصياغة المحظورة ❌</div>
+              <code>${item.donts}</code>
+            </div>
+          </div>
+
+          <div class="qa-card-footer">
+            <button class="qa-try-btn" onclick="tryQAScenario(${item.playgroundId || 1}, '${(item.tag || "").replace(/'/g, "\\'")}')">
+              <i class="fas fa-keyboard"></i> جرب القاعدة في مساحة التدريب <i class="fas fa-arrow-left"></i>
+            </button>
+            <button class="copy-btn" onclick="copyToClipboard('${item.question.replace(/'/g, "\\'")}\\n\\nالإجابة: ${item.answer.replace(/'/g, "\\'")}')">
+              <i class="far fa-copy"></i> نسخ الإجابة
+            </button>
+          </div>
+        </div>
+      `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+// Fallback message when query yields no direct matches
+function renderNoResultsFallback(query, container) {
+  container.innerHTML = `
+    <div class="qa-no-results">
+      <i class="fas fa-search-minus" style="font-size: 2.5rem; color: #a5b4fc; margin-bottom: 0.75rem;"></i>
+      <h3 style="color: #1e1b4b; font-size: 1.1rem; margin-bottom: 0.4rem;">لم نجد سؤالاً مطابقاً تماماً لـ "${query}"</h3>
+      <p style="color: #64748b; font-size: 0.95rem; max-width: 500px; margin: 0 auto 1.25rem auto;">
+        يمكنك تصفح دليل الأسئلة الشائعة أدناه أو تجربة الكلمات المفتاحية مثل: <strong>الأرقام، التردد، الصمت، الأجنبي، التداخل</strong>.
+      </p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button class="prompt-chip" onclick="executeQASearch('كيف أكتب الأرقام والتواريخ؟')">🔢 الأرقام والتواريخ</button>
+        <button class="prompt-chip" onclick="executeQASearch('متى أستخدم وسم empty؟')">🔇 وسم empty</button>
+      </div>
+    </div>
+  `;
+}
+
+// Shortcut to load QA Scenario in Playground
+window.tryQAScenario = function (playgroundId, tag) {
+  const scenario =
+    (PRACTICE_SCENARIOS.ar || []).find((s) => s.id === playgroundId) ||
+    PRACTICE_SCENARIOS.ar[0];
+  if (scenario) {
+    loadPracticeScenario(scenario.heard);
+  }
+  const el = document.getElementById("playground-section");
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth" });
+  }
+};
+
+// Render Q&A Search Hero Section
+function renderQASearchHero(lang) {
+  const isAr = lang === "ar" || lang === "dual";
+  return `
+    <section class="qa-hero-section" id="qa-search-section">
+      <div class="hero-badge">
+        <i class="fas fa-bolt" style="color: #f59e0b;"></i> ${isAr ? "مركز الأسئلة والبحث الفوري بالإرشادات المعيارية" : "Instant Arabic Guidelines QA & Search Hub"}
+      </div>
+      <h1 class="hero-title">اطرح أي سؤال عن إرشادات التفريغ واحصل على إجابة فورية ⚡</h1>
+      <p class="hero-subtitle">مُحرّك ذكي يُجيب على استفساراتك فورياً بالأمثلة والقواعد المعيارية لتفريغ وترقيم التسجيلات الصوتية </p>
+
+      <!-- Prominent Search Hero Input Container -->
+      <div class="qa-search-hero-box">
+        <div class="qa-input-wrapper">
+          <i class="fas fa-search qa-search-icon"></i>
+          <input 
+            type="text" 
+            id="qa-search-input" 
+            class="qa-search-input" 
+            placeholder="اكتب سؤالك هنا (مثال: كيف أكتب التواريخ؟ متى أستخدم وسم empty؟ ما هو وسم التداخل؟)"
+            oninput="executeQASearch()"
+            onkeydown="if(event.key==='Enter') executeQASearch()"
+          />
+          <button class="qa-clear-btn" onclick="executeQASearch('')" title="مسح">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Prompt Chips -->
+        <div class="prompt-chips-container">
+          <div class="chips-label"><i class="fas fa-fire" style="color: #ff6b4a;"></i> أسئلة سريعة شائعة:</div>
+          <div class="chips-list">
+            <button class="prompt-chip" onclick="executeQASearch('كيف أكتب الأرقام والتواريخ؟')">
+              🔢 كتابة الأرقام والتواريخ
+            </button>
+            <button class="prompt-chip" onclick="executeQASearch('متى أستخدم وسم empty؟')">
+              🔇 وسم صامت &lt;empty&gt;
+            </button>
+            <button class="prompt-chip" onclick="executeQASearch('كيف أتعامل مع التردد والحشو؟')">
+              ❓ التردد والحشو &lt;fill&gt;
+            </button>
+            <button class="prompt-chip" onclick="executeQASearch('انقطاع الصوت في منتصف الكلمة')">
+              ✂️ قطع الكلمات &lt;cut-off&gt;
+            </button>
+            <button class="prompt-chip" onclick="executeQASearch('تداخل المتحدثين crosstalk')">
+              🗣️ تداخل المتحدثين &lt;crosstalk&gt;
+            </button>
+            <button class="prompt-chip" onclick="executeQASearch('ضحك وتصفيق وسعال')">
+              💬 الأصوات والمؤثرات البشرية
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instant Results Dynamic Container -->
+      <div id="qa-results-container" class="qa-results-container">
+        <!-- Rendered live via JS -->
+      </div>
+    </section>
+  `;
+}
+
+// Render Live Text & Rule Checker Section
+function renderTextCheckerSection(lang) {
+  return `
+    <section class="text-checker-section" id="text-checker-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fas fa-spell-check" style="color: #6366f1;"></i> فاحص النصوص والقواعد المباشر (Live Rules Checker)
+        </h2>
+        <span class="principle-badge" style="background: #e0e7ff; color: #4338ca; border-color: #c7d2fe;">
+          <i class="fas fa-shield-alt"></i> فحص آلي فوري
+        </span>
+      </div>
+
+      <div class="checker-card">
+        <div class="checker-input-wrapper">
+          <label for="checker-textarea" class="checker-label">
+            <i class="fas fa-pen"></i> اكتب أو ألصق نص التفريغ هنا لفحصه فوراً وتنبيهك لأي مخالفة للإرشادات:
+          </label>
+          <textarea id="checker-textarea" class="checker-textarea" placeholder="مثال: في عام 2025 قال المتحدث آآ أهلاً بكم [تصفيق] وسنلتقي الساعة 5..." oninput="runLiveTextAnalysis()"></textarea>
+        </div>
+
+        <div id="checker-results-box" class="checker-results-box">
+          <div class="checker-empty-state">
+            <i class="fas fa-search" style="font-size: 2rem; color: #a5b4fc; margin-bottom: 0.5rem;"></i>
+            <div>اكتب أو ألصق نصاً في الصندوق أعلاه ليتم تحليله فوراً وإظهار النتيجة والتصويبات القواعدية.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// Real-time Text Analysis Logic
+window.runLiveTextAnalysis = function () {
+  const text = (
+    document.getElementById("checker-textarea")?.value || ""
+  ).trim();
+  const resultsBox = document.getElementById("checker-results-box");
+  if (!resultsBox) return;
+
+  if (!text) {
+    resultsBox.innerHTML = `
+      <div class="checker-empty-state">
+        <i class="fas fa-search" style="font-size: 2rem; color: #a5b4fc; margin-bottom: 0.5rem;"></i>
+        <div>اكتب أو ألصق نصاً في الصندوق أعلاه ليتم تحليله فوراً وإظهار النتيجة والتصويبات القواعدية.</div>
+      </div>
+    `;
+    return;
+  }
+
+  const issues = [];
+
+  // Check 1: Raw Digits
+  const digitMatches = text.match(/[0-9٠-٩]+/g);
+  if (digitMatches) {
+    issues.push({
+      type: "error",
+      title: "استخدام أرقام رقمية ❌",
+      desc: `تم رصد الأرقام (${Array.from(new Set(digitMatches)).join(", ")}). يجب تفقيط جميع الأرقام والتواريخ بالكلمات الحرفية.`,
+      suggestion: "مثال: اكتب 'ألفين وخمسة وعشرين' بدلاً من '2025'.",
+    });
+  }
+
+  // Check 2: Raw Fillers instead of <fill>
+  const fillerMatches = text.match(/(آآ|أمم|آه|امم|uh|um)/gi);
+  if (fillerMatches) {
+    issues.push({
+      type: "warning",
+      title: "أصوات تردد مكتوبة حروفاً ⚠️",
+      desc: `تم رصد أصوات التردد (${Array.from(new Set(fillerMatches)).join(", ")}). يجب استبدالها بالوسم المعتمد <fill>.`,
+      suggestion: "مثال: بدلاً من 'آآ أهلاً' اكتب '<fill> أهلاً'.",
+    });
+  }
+
+  // Check 3: Invalid tag brackets like [ضحك] or (تصفيق)
+  const invalidBrackets = text.match(/\[[^\]]+\]|\([^\)]+\)/g);
+  if (invalidBrackets) {
+    issues.push({
+      type: "error",
+      title: "استخدام أقواس غير معتمدة ❌",
+      desc: `تم رصد أقواس مربعة أو دائرية (${invalidBrackets.slice(0, 3).join(", ")}). يجب استخدام أقواس زاوية مفردة فقط بحروف صغيرة <مثل_هذا>.`,
+      suggestion: "استخدم <laughter> أو <applause> أو <empty> فقط.",
+    });
+  }
+
+  // Check 4: Hyphens between compound numbers
+  if (
+    /(واحدة|اثنان|ثلاثة|أربعة|خمسة|ستة|سبعة|ثمانية|تسعة)-(عشر|عشرة|عشرون|ثلاثون)/.test(
+      text,
+    )
+  ) {
+    issues.push({
+      type: "error",
+      title: "وجود شرطات بين أجزاء الأعداد ❌",
+      desc: "يُحظر تماماً وضع شرطة بين أجزاء الأعداد المركبة.",
+      suggestion: "اكتب الأعداد ككلمات منفصلة بمسافات عادية دون شرطات.",
+    });
+  }
+
+  // Check 5: Tashkeel & Tanween Prohibited
+  const tashkeelMatches = text.match(/[\u064B-\u0652\u0670]/g);
+  if (tashkeelMatches) {
+    const uniqueTashkeel = Array.from(new Set(tashkeelMatches));
+    issues.push({
+      type: "error",
+      title: "استخدام التشكيل أو التنوين ❌",
+      desc: `تم رصد التشكيل أو التنوين في النص (${uniqueTashkeel.join(" ، ")}). يُحظر تماماً التشكيل والتنوين في التفريغ المعياري.`,
+      suggestion:
+        "قم بإزالة الحركات والتشكيل واكتب الكلمات مجردة (مثال: اكتب 'جدا' بدلاً من 'جداً').",
+    });
+  }
+
+  if (issues.length === 0) {
+    resultsBox.innerHTML = `
+      <div class="checker-pass-state">
+        <i class="fas fa-check-circle" style="font-size: 2.5rem; color: #22c55e; margin-bottom: 0.5rem;"></i>
+        <h3 style="color: #15803d; font-weight: 800;">ممتاز! النص متوافق 100% مع الإرشادات الرسمية</h3>
+        <p style="color: #166534; font-size: 0.95rem;">لم نجد أي أرقام رقمية، أو أقواس خاطئة، أو أصوات تردد غير معنونة.</p>
+      </div>
+    `;
+  } else {
+    resultsBox.innerHTML = `
+      <div class="checker-issues-list">
+        <div style="font-weight: 800; font-size: 1rem; color: #1e1b4b; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>
+          <span>تم رصد ${issues.length} ملاحظات قواعدية يجب تعديلها:</span>
+        </div>
+        ${issues
+          .map(
+            (iss) => `
+          <div class="checker-issue-card checker-issue-${iss.type}">
+            <div class="issue-header">
+              <span class="issue-title">${iss.title}</span>
+            </div>
+            <div class="issue-desc">${iss.desc}</div>
+            <div class="issue-suggestion"><i class="fas fa-lightbulb" style="color: #f59e0b;"></i> ${iss.suggestion}</div>
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+    `;
+  }
+};
+
+// Render FAQ Accordion Explorer Section
+function renderFAQExplorer(lang) {
+  const db = GUIDELINES_DATA.qa_database || [];
+  return `
+    <section class="faq-section" id="faq-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fas fa-question-circle" style="color: #6366f1;"></i> مكتبة الأسئلة الشائعة والإجابات المعتمدة (FAQ Explorer)
+        </h2>
+        <span class="principle-badge" style="background: #f0eeff; color: #6366f1;">
+          دليل مبوب وشامل
+        </span>
+      </div>
+
+      <!-- Category Tabs -->
+      <div class="faq-tabs">
+        <button class="faq-tab active" data-cat="all" onclick="filterFAQCategory('all', this)">
+          <i class="fas fa-th-large"></i> جميع الأسئلة
+        </button>
+        <button class="faq-tab" data-cat="numbers" onclick="filterFAQCategory('numbers', this)">
+          <i class="fas fa-font"></i> الأرقام والتواريخ
+        </button>
+        <button class="faq-tab" data-cat="tags" onclick="filterFAQCategory('tags', this)">
+          <i class="fas fa-tags"></i> الوسوم والأقواس
+        </button>
+        <button class="faq-tab" data-cat="fillers" onclick="filterFAQCategory('fillers', this)">
+          <i class="fas fa-comment-slash"></i> التردد والقطع
+        </button>
+        <button class="faq-tab" data-cat="special" onclick="filterFAQCategory('special', this)">
+          <i class="fas fa-layer-group"></i> الحالات الخاصة
+        </button>
+      </div>
+
+      <div class="faq-accordion-grid" id="faq-accordion-grid">
+        ${db
+          .map(
+            (item) => `
+          <div class="faq-item" data-category="${item.category}">
+            <div class="faq-item-header" onclick="toggleFAQItem(this)">
+              <div class="faq-item-title">
+                <span class="faq-badge">${item.categoryLabel}</span>
+                <span>${item.question}</span>
+              </div>
+              <i class="fas fa-chevron-down faq-icon"></i>
+            </div>
+            <div class="faq-item-body">
+              <div class="qa-answer-box">
+                <div class="qa-answer-label"><i class="fas fa-lightbulb" style="color: #f59e0b;"></i> الإجابة الرسمية:</div>
+                <p class="qa-answer-text">${item.answer}</p>
+              </div>
+              <div class="qa-examples-split">
+                <div class="qa-ex-box qa-ex-do">
+                  <div class="qa-ex-title">✅ صحيح</div>
+                  <code>${item.dos}</code>
+                </div>
+                <div class="qa-ex-box qa-ex-dont">
+                  <div class="qa-ex-title">❌ محظور</div>
+                  <code>${item.donts}</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+window.filterFAQCategory = function (cat, btnEl) {
+  document
+    .querySelectorAll(".faq-tab")
+    .forEach((t) => t.classList.remove("active"));
+  if (btnEl) btnEl.classList.add("active");
+
+  document.querySelectorAll(".faq-item").forEach((item) => {
+    if (cat === "all" || item.dataset.category === cat) {
+      item.style.display = "block";
+    } else {
+      item.style.display = "none";
+    }
+  });
+};
+
+window.toggleFAQItem = function (headerEl) {
+  const item = headerEl.closest(".faq-item");
+  if (item) {
+    item.classList.toggle("open");
+  }
+};
+
 // Generate Full HTML Pane for a given language ('ar' or 'en')
 function renderFullPaneContent(lang) {
   const isAr = lang === "ar";
@@ -169,427 +643,71 @@ function renderFullPaneContent(lang) {
   const scenarios = PRACTICE_SCENARIOS[lang];
 
   return `
-    <!-- HERO SECTION -->
-    <section class="hero-section">
-      <div class="hero-badge">
-        <i class="fas fa-certificate"></i> ${isAr ? "الدليل المعياري الرسمي الشامل للمشاركين" : "Official Annotation Standard Reference"}
-      </div>
-      <h1 class="hero-title">${data.summary[lang].title}</h1>
-      <p class="hero-subtitle">${data.summary[lang].subtitle}</p>
+    ${renderQASearchHero(lang)}
+    ${renderTextCheckerSection(lang)}
+    ${renderFAQExplorer(lang)}
 
-      <!-- Stat Badges Row -->
-      <div class="hero-stats-row">
-        <div class="stat-pill"><i class="fas fa-check-circle" style="color: #6366f1;"></i> ${isAr ? "تفريغ حرفي 100%" : "100% Verbatim"}</div>
-        <div class="stat-pill"><i class="fas fa-tags" style="color: #3b82f6;"></i> ${isAr ? "10 وسوم قياسية" : "10 Standard Tags"}</div>
-        <div class="stat-pill"><i class="fas fa-tasks" style="color: #8b5cf6;"></i> ${isAr ? "خطة 5 خطوات" : "5-Step Workflow"}</div>
-        <div class="stat-pill"><i class="fas fa-font" style="color: #ff6b4a;"></i> ${isAr ? "كتابة الأرقام حروفاً" : "Spelled-Out Numbers"}</div>
-      </div>
-
-      <!-- Core Principles Cards -->
-      <div class="core-principles-grid">
-        ${data.core_rules
-          .map(
-            (rule) => `
-          <div class="principle-card">
-            <div class="principle-header">
-              <div class="principle-icon"><i class="fas ${rule.icon}"></i></div>
-              <span class="principle-badge">${rule.badge[lang]}</span>
-            </div>
-            <h3 class="principle-title">${rule.title[lang]}</h3>
-            <p class="principle-desc">${rule.desc[lang]}</p>
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
-    </section>
-
-    <!-- NEEVO PLATFORM VIDEO TUTORIAL SECTION -->
-    <section class="video-section" id="video-section">
+    <!-- WORK RATE CALCULATOR SECTION -->
+    <section class="calculator-section" id="calculator-section">
       <div class="section-header">
         <h2 class="section-title">
-          <i class="fab fa-youtube" style="color: #ff0000;"></i> ${isAr ? "فيديو توضيحي لمنصة نيفو (Neevo Platform Tutorial)" : "Neevo Platform Video Tutorial"}
+          <i class="fas fa-calculator" style="color: #22c55e;"></i> ${isAr ? " معدل الإنجاز وسرعة العمل (Work Rate Calculator)" : "Work Rate & Performance Calculator"}
         </h2>
-        <span class="principle-badge" style="background: #fff1f2; color: #e11d48; border-color: #fecdd3;">
-          <i class="fas fa-play-circle"></i> ${isAr ? "شرح عملي تطبيقي" : "Practical Video Demo"}
+        <span class="principle-badge" style="background: #dcfce7; color: #15803d; border-color: #86efac;">
+          <i class="fas fa-chart-line"></i> ${isAr ? "حساب آلي دقيق" : "Instant Rate Calculation"}
         </span>
       </div>
 
-      <div class="video-player-card">
-        <div class="video-aspect-container">
-          <iframe 
-            src="https://www.youtube-nocookie.com/embed/H3YokTyFACQ?rel=0&modestbranding=1" 
-            title="Neevo Platform Audio Transcription Tutorial" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; webshare" 
-            allowfullscreen>
-          </iframe>
-        </div>
+      <div class="calculator-card">
+        <p class="calc-intro-text">
+          ${isAr ? "أدخل عدد المهام، وأطوال المقاطع الصوتية بالدقائق، والوقت المُنقضي في العمل لحساب معدل استغراقك الزمني لكل دقيقة صوتية بدقة." : "Enter your tasks count, audio minutes, and work duration to calculate your exact work rate ratio."}
+        </p>
 
-        <div class="video-info-bar">
-          <div class="video-desc">
-            <i class="fas fa-info-circle" style="color: #6366f1; font-size: 1.1rem;"></i>
-            <span>${isAr ? "يعرض هذا الفيديو الشرح التوضيحي المباشر لكيفية العمل والتعامل مع المهام في منصة Neevo وتطبيق قواعد التفريغ المعيارية." : "This video demonstrates the practical workflow, task execution, and guidelines application on the Neevo platform."}</span>
+        <div class="calc-form-grid">
+          <!-- Input 1: Tasks Count -->
+          <div class="calc-field-group">
+            <label for="calc-tasks-count" class="calc-label">
+              <i class="fas fa-tasks"></i> ${isAr ? "عدد المهام الكلي:" : "Total Tasks Count:"}
+            </label>
+            <input type="number" id="calc-tasks-count" class="calc-input" placeholder="${isAr ? "1" : "1"}" min="1" />
           </div>
 
-          <a href="https://www.youtube.com/watch?v=H3YokTyFACQ" target="_blank" rel="noopener noreferrer" class="youtube-direct-link">
-            <i class="fab fa-youtube" style="color: #ff0000; font-size: 1.2rem;"></i>
-            <span>${isAr ? "مشاهدة الفيديو على YouTube" : "Watch Video on YouTube"}</span>
-            <i class="fas fa-external-link-alt" style="font-size: 0.8rem;"></i>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- WORKFLOW WIZARD (5 STEPS) -->
-    <section class="workflow-section" id="workflow-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <i class="fas fa-list-ol"></i> ${isAr ? "دليل عملي مختصر (خطوات التفريغ الـ 5)" : "Actionable 5-Step Workflow"}
-        </h2>
-      </div>
-
-      <div class="steps-wrapper">
-        ${data.workflow_steps
-          .map(
-            (step) => `
-          <div class="step-card ${step.step === 1 ? "open" : ""}" data-step="${step.step}">
-            <div class="step-header">
-              <div class="step-title-group">
-                <div class="step-number">${step.step}</div>
-                <span class="step-title-text">${step.title[lang]}</span>
-              </div>
-              <i class="fas fa-chevron-down step-toggle-icon"></i>
-            </div>
-            <div class="step-body">
-              <div class="step-items-list">
-                ${step.items
-                  .map(
-                    (item) => `
-                  <div class="workflow-item">
-                    <div class="workflow-trigger">
-                      <i class="fas fa-play-circle" style="color: #6366f1;"></i> ${item.trigger[lang]}
-                    </div>
-                    <div class="workflow-action">${item.action[lang]}</div>
-                    <div class="code-example-box">
-                      <span>${item.example}</span>
-                      <button class="copy-btn" onclick="copyToClipboard('${item.example.replace(/'/g, "\\'")}')">
-                        <i class="far fa-copy"></i>
-                      </button>
-                    </div>
-                  </div>
-                `,
-                  )
-                  .join("")}
-              </div>
-            </div>
+          <!-- Input 2: Audio Durations in Minutes -->
+          <div class="calc-field-group">
+            <label for="calc-audio-mins" class="calc-label">
+              <i class="fas fa-headphones"></i> ${isAr ? "أطوال المقاطع الصوتية بالدقائق:" : "Audio Durations (Minutes):"}
+            </label>
+            <input type="text" id="calc-audio-mins" class="calc-input" placeholder="${isAr ? "100" : "100"}" />
+            <span class="calc-helper-note">
+              <i class="fas fa-info-circle"></i> ${isAr ? "يمكنك كتابة مجموع الدقائق أو عملية جمع مثل: (14 + 16 + 21 + 150)" : "Enter total or math addition e.g. (14 + 16 + 21 + 150)"}
+            </span>
           </div>
-        `,
-          )
-          .join("")}
-      </div>
-    </section>
 
-    <!-- WORKED EXAMPLES EXPLORER (SECTION 3.1 FROM PDF) -->
-    <section class="worked-examples-section" id="worked-examples-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <i class="fas fa-check-double"></i> ${isAr ? "أمثلة عملية تطبيقية (صحيح vs محظور)" : "Worked Examples (Do vs Don't)"}
-        </h2>
-      </div>
-
-      <div class="worked-grid">
-        ${data.worked_examples_section[lang]
-          .map(
-            (ex) => `
-          <div class="worked-card">
-            <div class="worked-heard-label">
-              <i class="fas fa-headphones"></i> ${isAr ? "المسموع في الصوت:" : "Heard in Audio:"} "${ex.heard}"
-            </div>
-            <div class="worked-correct-box">
-              <i class="fas fa-check-circle"></i> ${ex.correct}
-            </div>
-            ${
-              ex.incorrect
-                ? ex.incorrect
-                    .map(
-                      (inc) => `
-              <div class="worked-incorrect-box">
-                <i class="fas fa-times-circle"></i> <s>${inc}</s>
+          <!-- Input 3: Work Duration (Hours & Minutes) -->
+          <div class="calc-field-group">
+            <label class="calc-label">
+              <i class="fas fa-stopwatch"></i> ${isAr ? "الوقت المُستغرق في العمل:" : "Time Spent Working:"}
+            </label>
+            <div class="calc-time-inputs-row">
+              <div class="calc-time-subgroup">
+                <input type="number" id="calc-work-hours" class="calc-input" placeholder="ساعات" min="0" />
+                <span class="calc-time-unit">${isAr ? "ساعة" : "hrs"}</span>
               </div>
-            `,
-                    )
-                    .join("")
-                : ""
-            }
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
-    </section>
-
-    <!-- TAG MATRIX EXPLORER -->
-    <section class="tags-section" id="tags-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <i class="fas fa-tags"></i> ${isAr ? "جدول الوسوم المعتمدة (القسم 3)" : "Approved Annotation Tags (Section 3)"}
-        </h2>
-        <div class="search-box">
-          <i class="fas fa-search search-icon"></i>
-          <input type="text" class="search-input tag-search-input" placeholder="${isAr ? "ابحث عن وسم أو حالة..." : "Search tags or triggers..."}" />
-        </div>
-      </div>
-
-      <div class="tags-grid">
-        ${data.annotation_tags
-          .map(
-            (t) => `
-          <div class="tag-card" data-tag-name="${t.tag}">
-            <div>
-              <div class="tag-header">
-                <span class="tag-badge-code" onclick="copyToClipboard('${t.tag.replace(/'/g, "\\'")}')">
-                  ${t.tag} <i class="far fa-copy" style="font-size: 0.8rem; margin-inline-start: 4px;"></i>
-                </span>
-                <span class="tag-type">${t.type}</span>
-              </div>
-              <p class="tag-desc">${isAr ? t.desc_ar : t.desc_en}</p>
-              ${
-                (isAr ? t.notes_ar : t.notes_en)
-                  ? `
-                <div class="tag-notes">
-                  <i class="fas fa-exclamation-triangle"></i> ${isAr ? t.notes_ar : t.notes_en}
-                </div>
-              `
-                  : ""
-              }
-            </div>
-            <div class="code-example-box">
-              <span>${t.example}</span>
-              <button class="copy-btn" onclick="copyToClipboard('${t.example.replace(/'/g, "\\'")}')">
-                <i class="far fa-copy"></i>
-              </button>
-            </div>
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
-    </section>
-
-    <!-- FORMATTING CONVENTIONS -->
-    <section class="formatting-section" id="formatting-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <i class="fas fa-paragraph"></i> ${isAr ? "قواعد الكتابة والتنسيق (القسم 2)" : "Formatting Conventions (Section 2)"}
-        </h2>
-      </div>
-
-      <div class="formatting-grid">
-        ${data.formatting_conventions
-          .map(
-            (conv) => `
-          <div class="convention-card">
-            <div class="convention-header">
-              <h3 class="convention-title">${conv.title[lang]}</h3>
-            </div>
-            <p class="convention-rule">${isAr ? conv.rule_ar : conv.rule_en}</p>
-            <div class="dodont-grid">
-              <div class="dodont-box do-box">
-                <div class="dodont-label">
-                  <i class="fas fa-check-circle"></i> ${isAr ? "الصياغة الصحيحة (Do)" : "Correct (Do)"}
-                </div>
-                ${conv.dos.map((d) => `<div>• ${isAr ? d.ar : d.en}</div>`).join("")}
-              </div>
-              <div class="dodont-box dont-box">
-                <div class="dodont-label">
-                  <i class="fas fa-times-circle"></i> ${isAr ? "الصياغة المحظورة (Don't)" : "Prohibited (Don't)"}
-                </div>
-                ${conv.donts.map((d) => `<div>• ${isAr ? d.ar : d.en}</div>`).join("")}
-              </div>
-            </div>
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
-    </section>
-
-    <!-- SPECIAL SPEECH RULES & OVERLAP CASES (SECTION 4 BENTO GRID) -->
-    <section class="special-section" id="special-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <i class="fas fa-layer-group"></i> ${isAr ? "الحالات والتفريعات التفصيلية (القسم 4)" : "Detailed Rules & Cases (Section 4)"}
-        </h2>
-      </div>
-
-      <div class="special-bento-grid">
-        <!-- Bento Card 1: Stuttering, False Starts & Repetitions (Span 7) -->
-        <div class="special-card bento-card-lg-1">
-          <div class="special-title"><i class="fas fa-cut"></i> ${data.special_rules[0].title[lang]}</div>
-          <div style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.75rem;">
-            <div style="background: #f0fdf4; border-radius: var(--radius-md); padding: 1rem; border: 1px solid #bbf7d0;">
-              <span class="principle-badge" style="color: #15803d; background: #dcfce7; border-color: #86efac; margin-bottom: 0.4rem; display: inline-block;">
-                <i class="fas fa-check"></i> ${isAr ? "التأتأة (Stuttering)" : "Stuttering"}
-              </span>
-              <p style="font-size: 0.95rem; color: var(--text-secondary);">${isAr ? data.special_rules[0].stutter_desc_ar : data.special_rules[0].stutter_desc_en}</p>
-            </div>
-
-            <div style="background: #fffbeb; border-radius: var(--radius-md); padding: 1rem; border: 1px solid #fde68a;">
-              <span class="principle-badge" style="color: #b45309; background: #fef3c7; border-color: #fde68a; margin-bottom: 0.4rem; display: inline-block;">
-                <i class="fas fa-strikethrough"></i> ${isAr ? "البداية الخاطئة (False Start)" : "False Start"}
-              </span>
-              <p style="font-size: 0.95rem; color: var(--text-secondary);">${isAr ? data.special_rules[0].false_start_desc_ar : data.special_rules[0].false_start_desc_en}</p>
-            </div>
-
-            <div style="background: #eeecfd; border-radius: var(--radius-md); padding: 1rem; border: 1px solid rgba(99, 102, 241, 0.25);">
-              <span class="principle-badge" style="color: #4338ca; background: #e0e7ff; border-color: #c7d2fe; margin-bottom: 0.4rem; display: inline-block;">
-                <i class="fas fa-redo"></i> ${isAr ? "التكرار الحقيقي (Deliberate Repetition)" : "Deliberate Repetition"}
-              </span>
-              <p style="font-size: 0.95rem; color: var(--text-secondary);">${isAr ? data.special_rules[0].repetition_desc_ar : data.special_rules[0].repetition_desc_en}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bento Card 2: Multiple Speaker Cases 4.11 (Span 5) -->
-        <div class="special-card bento-card-lg-2">
-          <div class="special-title"><i class="fas fa-users"></i> ${isAr ? "حالات تداخل المتحدثين (Section 4.11)" : "Multiple Speaker Cases (4.11)"}</div>
-          <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem;">
-            <div style="background: #f8fafc; border-radius: var(--radius-sm); padding: 0.85rem; border: 1px solid var(--border-color);">
-              <div style="font-weight: 800; font-size: 0.85rem; color: #2563eb; margin-bottom: 0.3rem;">Case A (متحدث مفهوم والآخر غير مفهوم)</div>
-              <div class="code-example-box" style="font-size: 0.82rem; flex-direction: column; align-items: flex-start; gap: 4px;">
-                <span>Spk 1: hello &lt;background_speech&gt; how are you</span>
-                <span>Spk 2: &lt;background_speech&gt; &lt;unintelligible&gt;</span>
-              </div>
-            </div>
-
-            <div style="background: #f8fafc; border-radius: var(--radius-sm); padding: 0.85rem; border: 1px solid var(--border-color);">
-              <div style="font-weight: 800; font-size: 0.85rem; color: #16a34a; margin-bottom: 0.3rem;">Case B (كلا المتحدثين مفهوم)</div>
-              <div class="code-example-box" style="font-size: 0.82rem; flex-direction: column; align-items: flex-start; gap: 4px;">
-                <span>Spk 1: hello &lt;background_speech&gt; how are you</span>
-                <span>Spk 2: very well &lt;background_speech&gt; thanks</span>
-              </div>
-            </div>
-
-            <div style="background: #f8fafc; border-radius: var(--radius-sm); padding: 0.85rem; border: 1px solid var(--border-color);">
-              <div style="font-weight: 800; font-size: 0.85rem; color: #dc2626; margin-bottom: 0.3rem;">Case C (تداخل شديد)</div>
-              <div class="code-example-box" style="font-size: 0.82rem;">
-                <span>Segment: &lt;crosstalk&gt;</span>
+              <div class="calc-time-subgroup">
+                <input type="number" id="calc-work-mins" class="calc-input" placeholder="دقائق" min="0" max="59" />
+                <span class="calc-time-unit">${isAr ? "دقيقة" : "mins"}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Bento Card 3: Mispronounced Words (Span 4) -->
-        <div class="special-card bento-card-sm-1">
-          <div class="special-title"><i class="fas fa-spell-check"></i> ${data.special_rules[1].title[lang]}</div>
-          <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.6;">${isAr ? data.special_rules[1].rule_ar : data.special_rules[1].rule_en}</p>
-        </div>
+        <button class="calc-submit-btn" onclick="calculateWorkRate()">
+          <i class="fas fa-calculator"></i> ${isAr ? "احسب معدل الإنجاز وسرعة العمل" : "Calculate Work Rate"}
+        </button>
 
-        <!-- Bento Card 4: Singing & Music (Span 4) -->
-        <div class="special-card bento-card-sm-2">
-          <div class="special-title"><i class="fas fa-music"></i> ${data.special_rules[2].title[lang]}</div>
-          <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.6;">${isAr ? data.special_rules[2].rule_ar : data.special_rules[2].rule_en}</p>
-        </div>
-
-        <!-- Bento Card 5: Discourse Markers (Span 4) -->
-        <div class="special-card bento-card-sm-3">
-          <div class="special-title"><i class="fas fa-comments"></i> ${data.special_rules[3].title[lang]}</div>
-          <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.6;">${isAr ? data.special_rules[3].rule_ar : data.special_rules[3].rule_en}</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- TRANSCRIBER PLAYGROUND -->
-    <section class="playground-section" id="playground-section">
-      <div class="playground-header">
-        <div>
-          <h2 class="section-title" style="margin-bottom: 0.25rem;">
-            <i class="fas fa-keyboard"></i> ${isAr ? "مساحة تدريب المفصّل واختبار القواعد" : "Interactive Transcriber Practice Console"}
-          </h2>
-          <div style="font-size: 0.9rem; color: var(--text-secondary);">
-            ${isAr ? "انقر على زر الوسم (+) لإدراجه مباشرة في النص واختبار القواعد تلقائياً" : "Click any tag button (+ <tag>) to insert it directly into the text for live practice"}
-          </div>
-        </div>
-        <span style="font-size: 0.88rem; color: #4338ca; font-weight: 800; background: #eeecfd; padding: 6px 14px; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.25);">
-          <i class="fas fa-robot"></i> ${isAr ? "فحص آلي فوري" : "Live PDF Rule Checker"}
-        </span>
-      </div>
-
-      <!-- Practice Scenarios Selector -->
-      <div style="margin-bottom: 1.25rem;">
-        <div style="font-size: 0.85rem; font-weight: 800; color: #4338ca; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px;">
-          <i class="fas fa-dumbbell"></i> ${isAr ? "اختر تمريناً تطبيقياً للتدريب:" : "Select a practice exercise scenario:"}
-        </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-          ${scenarios
-            .map(
-              (sc) => `
-            <button class="copy-btn" onclick="loadPracticeScenario('${sc.heard.replace(/'/g, "\\'")}')" style="font-size: 0.82rem; font-weight: 700;">
-              <i class="fas fa-play" style="font-size: 0.75rem; color: #6366f1;"></i> ${sc.title}
-            </button>
-          `,
-            )
-            .join("")}
-        </div>
-      </div>
-
-      <!-- Quick Tag Buttons with Full Visible Tag Code -->
-      <div class="quick-tags-bar">
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<fill>')">
-          <i class="fas fa-plus"></i> <code>&lt;fill&gt;</code>
-        </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<vocal_noise>')">
-          <i class="fas fa-plus"></i> <code>&lt;vocal_noise&gt;</code>
-        </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<non_speech>')">
-          <i class="fas fa-plus"></i> <code>&lt;non_speech&gt;</code>
-        </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<background_speech>')">
-          <i class="fas fa-plus"></i> <code>&lt;background_speech&gt;</code>
-        </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<crosstalk>')">
-          <i class="fas fa-plus"></i> <code>&lt;crosstalk&gt;</code>
-        </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<unintelligible>')">
-          <i class="fas fa-plus"></i> <code>&lt;unintelligible&gt;</code>
-        </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<foreign_start>')">
-          <i class="fas fa-plus"></i> <code>&lt;foreign_start&gt;</code>
-        </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<foreign_end>')">
-          <i class="fas fa-plus"></i> <code>&lt;foreign_end&gt;</code>
-        </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<empty>')">
-          <i class="fas fa-plus"></i> <code>&lt;empty&gt;</code>
-        </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<non-native>')">
-          <i class="fas fa-plus"></i> <code>&lt;non-native&gt;</code>
-        </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('<cut-off>')">
-          <i class="fas fa-plus"></i> <code>&lt;cut-off&gt;</code>
-        </button>
-        <button class="tag-btn-insert" onclick="insertTagIntoPlayground('السا-')" style="color: #b45309; background: #fffbeb; border-color: #fde68a;">
-          <i class="fas fa-plus"></i> <code>السا-</code> (${isAr ? "شرطة قطع" : "cut hyphen"})
-        </button>
-      </div>
-
-      <!-- Heard Prompt Alert Banner -->
-      <div id="heard-prompt-banner" style="display: none; background: #eeecfd; border: 1px solid rgba(99, 102, 241, 0.25); border-radius: var(--radius-sm); padding: 12px 18px; margin-bottom: 1rem; color: #312e81; font-size: 0.95rem; font-weight: 700;">
-        <i class="fas fa-headphones" style="color: #6366f1;"></i> <span id="heard-prompt-text"></span>
-      </div>
-
-      <textarea id="playground-editor" class="playground-textarea" placeholder="${isAr ? "اكتب أو ألصق نص التفريغ هنا للتأكد من القواعد والأرقام والشرطات والوسوم..." : "Type or paste transcript here to test compliance with PDF rules..."}" oninput="validatePlaygroundText()"></textarea>
-
-      <div class="playground-status-bar">
-        <div class="rules-checklist" id="rules-checklist">
-          <span class="check-item pass" id="chk-digits"><i class="fas fa-check-circle"></i> ${isAr ? "لا توجد أرقام رقمية" : "No raw digits"}</span>
-          <span class="check-item pass" id="chk-num-hyphen"><i class="fas fa-check-circle"></i> ${isAr ? "لا شرطات بالأرقام" : "No hyphens in numbers"}</span>
-          <span class="check-item pass" id="chk-foreign"><i class="fas fa-check-circle"></i> ${isAr ? "وسوم الأجنبي متطابقة" : "Foreign tags balanced"}</span>
-          <span class="check-item pass" id="chk-crosstalk"><i class="fas fa-check-circle"></i> ${isAr ? "التداخل التام بدون كلمات" : "Crosstalk empty"}</span>
-        </div>
-
-        <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 700;">
-          <span id="stat-words" style="color: #4338ca;">0</span> ${isAr ? "كلمة" : "words"} | <span id="stat-tags" style="color: #3b82f6;">0</span> ${isAr ? "وسم" : "tags"}
+        <!-- Dynamic Results Container -->
+        <div id="calc-results-card" class="calc-results-card" style="display: none;">
+          <!-- Rendered via calculateWorkRate() -->
         </div>
       </div>
     </section>
@@ -616,7 +734,8 @@ function handleScrollNavigation() {
     const footerRect = footer.getBoundingClientRect();
     if (
       footerRect.top <= window.innerHeight + 20 ||
-      window.innerHeight + scrollPos >= document.documentElement.scrollHeight - 100
+      window.innerHeight + scrollPos >=
+        document.documentElement.scrollHeight - 100
     ) {
       isNearFooter = true;
     }
@@ -680,6 +799,11 @@ function bindEvents() {
 
 // Attach interactive handlers after HTML render
 function attachInteractiveHandlers() {
+  // Execute initial search hero render
+  if (typeof window.executeQASearch === "function") {
+    window.executeQASearch("");
+  }
+
   // Accordion Step Cards
   document.querySelectorAll(".step-header").forEach((header) => {
     header.addEventListener("click", () => {
@@ -839,6 +963,19 @@ window.validatePlaygroundText = function () {
     }
   }
 
+  // 5. Tashkeel / Tanween Check
+  const hasTashkeel = /[\u064B-\u0652\u0670]/.test(text);
+  const chkTashkeel = document.getElementById("chk-tashkeel");
+  if (chkTashkeel) {
+    if (hasTashkeel) {
+      chkTashkeel.className = "check-item warn";
+      chkTashkeel.innerHTML = `<i class="fas fa-exclamation-circle"></i> تنبيه: يوجد تشكيل أو تنوين!`;
+    } else {
+      chkTashkeel.className = "check-item pass";
+      chkTashkeel.innerHTML = `<i class="fas fa-check-circle"></i> لا يوجد تشكيل أو تنوين`;
+    }
+  }
+
   // Word and Tag Counter Stats
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
   const tags = (text.match(/<[^>]+>/g) || []).length;
@@ -848,3 +985,164 @@ window.validatePlaygroundText = function () {
   if (statWords) statWords.textContent = words;
   if (statTags) statTags.textContent = tags;
 };
+
+// Work Rate & Performance Calculator Logic
+window.calculateWorkRate = function () {
+  const tasksInput = document.getElementById("calc-tasks-count")?.value || 0;
+  const audioInput = (
+    document.getElementById("calc-audio-mins")?.value || ""
+  ).trim();
+  const workHours = parseFloat(
+    document.getElementById("calc-work-hours")?.value || 0,
+  );
+  const workMins = parseFloat(
+    document.getElementById("calc-work-mins")?.value || 0,
+  );
+  const resultsCard = document.getElementById("calc-results-card");
+  if (!resultsCard) return;
+
+  const tasksCount = parseInt(tasksInput) || 0;
+
+  // Safely parse math additions like "14 + 16 + 21 + 150" or numeric inputs
+  let totalAudioMinutes = 0;
+  if (audioInput) {
+    const parts = audioInput.split(/[+\s,]+/);
+    for (const p of parts) {
+      const val = parseFloat(p);
+      if (!isNaN(val)) {
+        totalAudioMinutes += val;
+      }
+    }
+  }
+
+  const totalWorkMinutes = workHours * 60 + workMins;
+
+  if (totalAudioMinutes <= 0 || totalWorkMinutes <= 0) {
+    resultsCard.style.display = "block";
+    resultsCard.innerHTML = `
+      <div class="calc-error-box">
+        <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 1.5rem;"></i>
+        <div>يرجى إدخال قيم صحيحة لأطوال المقاطع ووقت العمل (يجب أن تكون أعلى من الصفر).</div>
+      </div>
+    `;
+    return;
+  }
+
+  // 1. Show 2-second Animated Progress Bar Loader
+  resultsCard.style.display = "block";
+  resultsCard.innerHTML = `
+    <div class="calc-loading-card">
+      <div class="calc-loading-header">
+        <i class="fas fa-spinner fa-spin" style="color: #22c55e; font-size: 1.25rem;"></i>
+        <span>جاري تحليل البيانات وحساب معدل الإنجاز...</span>
+      </div>
+      <div class="calc-progress-track">
+        <div class="calc-progress-bar"></div>
+      </div>
+    </div>
+  `;
+
+  // Start smooth 2s progress bar fill after DOM insert
+  requestAnimationFrame(() => {
+    const progressBar = resultsCard.querySelector(".calc-progress-bar");
+    if (progressBar) {
+      progressBar.style.width = "100%";
+    }
+  });
+
+  const rawRate = totalWorkMinutes / totalAudioMinutes;
+  const targetRate = parseFloat(rawRate.toFixed(2));
+  const audioHoursStr = (totalAudioMinutes / 60).toFixed(2);
+  const avgWorkPerTask =
+    tasksCount > 0 ? (totalWorkMinutes / tasksCount).toFixed(1) : 0;
+  const avgAudioPerTask =
+    tasksCount > 0 ? (totalAudioMinutes / tasksCount).toFixed(1) : 0;
+
+  // 2. Render Animated Results Card after 2 seconds
+  setTimeout(() => {
+    resultsCard.innerHTML = `
+      <div class="calc-success-box animate-pop-in">
+        <div class="rate-hero-badge">
+          <div class="rate-label">معدل الإنجاز وسرعة العمل (Work Rate):</div>
+          <div class="rate-number-display" id="anim-rate-counter">0.00x</div>
+          <div class="rate-subtext">تستغرق <strong>${targetRate}</strong> دقيقة عمل لإنجاز دقيقة واحدة من التسجيل الصوتي.</div>
+        </div>
+
+        <div class="calc-breakdown-grid">
+          <div class="calc-stat-pill">
+            <i class="fas fa-tasks" style="color: #6366f1;"></i>
+            <div>
+              <div class="stat-lbl">إجمالي المهام:</div>
+              <div class="stat-val">${tasksCount} مهام</div>
+            </div>
+          </div>
+
+          <div class="calc-stat-pill">
+            <i class="fas fa-headphones" style="color: #3b82f6;"></i>
+            <div>
+              <div class="stat-lbl">إجمالي دقائق الصوت:</div>
+              <div class="stat-val">${totalAudioMinutes} دقيقة (${audioHoursStr} ساعة)</div>
+            </div>
+          </div>
+
+          <div class="calc-stat-pill">
+            <i class="fas fa-stopwatch" style="color: #8b5cf6;"></i>
+            <div>
+              <div class="stat-lbl">إجمالي وقت العمل:</div>
+              <div class="stat-val">${workHours}س و ${workMins}د (${totalWorkMinutes} دقيقة)</div>
+            </div>
+          </div>
+
+          <div class="calc-stat-pill">
+            <i class="fas fa-chart-pie" style="color: #10b981;"></i>
+            <div>
+              <div class="stat-lbl">متوسط المهمة الواحدة:</div>
+              <div class="stat-val">${avgWorkPerTask} د عمل / ${avgAudioPerTask} د صوت</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // 3. Smooth Count-Up Animation from 0.00 to targetRate
+    const counterEl = document.getElementById("anim-rate-counter");
+    if (counterEl) {
+      let startTime = null;
+      const duration = 900;
+      function stepCount(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const currentVal = (progress * targetRate).toFixed(2);
+        counterEl.textContent = `${currentVal}x`;
+        if (progress < 1) {
+          requestAnimationFrame(stepCount);
+        }
+      }
+      requestAnimationFrame(stepCount);
+    }
+  }, 2000);
+};
+
+// Touch & Click Mobile Navigation Dropdown Toggle Logic
+window.toggleNavDropdown = function (e) {
+  if (e) e.stopPropagation();
+  const wrapper = document.getElementById("nav-dropdown-wrapper");
+  if (wrapper) {
+    wrapper.classList.toggle("open");
+  }
+};
+
+window.closeNavDropdown = function () {
+  const wrapper = document.getElementById("nav-dropdown-wrapper");
+  if (wrapper) {
+    wrapper.classList.remove("open");
+  }
+};
+
+// Close dropdown when clicking anywhere outside on the document
+document.addEventListener("click", function (e) {
+  const wrapper = document.getElementById("nav-dropdown-wrapper");
+  if (wrapper && !wrapper.contains(e.target)) {
+    wrapper.classList.remove("open");
+  }
+});
