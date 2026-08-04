@@ -806,62 +806,39 @@ function renderExamResultsHTML() {
           : ""
       }
 
-      <!-- Detailed 70-Question Review -->
-      <div style="margin-top: 3rem; text-align: right;">
-        <h3 style="font-size: 1.5rem; font-weight: 900; color: var(--text-primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-          <i class="fas fa-clipboard-check" style="color: var(--accent-indigo);"></i>
-          <span>مراجعة شاملة لكافة الإجابات والـ 70 سؤالاً مع الشرح المعياري</span>
-        </h3>
+      <!-- Detailed 70-Question Review Section -->
+      <div class="review-section-header">
+        <div class="review-title-bar">
+          <div class="review-section-title">
+            <i class="fas fa-clipboard-check" style="color: var(--accent-indigo);"></i>
+            <span>مراجعة شاملة لكافة الإجابات مع الشرح المعياري</span>
+          </div>
 
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-          ${EXAM_DATA.questions
-            .map((q, idx) => {
-              const userAns = EXAM_STATE.answers[q.id];
-              let isCorr = false;
-              if (q.type === "verbatim_input") {
-                const normUser = (userAns || "").trim().replace(/\s+/g, " ");
-                const normTarget = q.targetAnswer.trim().replace(/\s+/g, " ");
-                isCorr = normUser === normTarget;
-              } else {
-                isCorr = userAns === q.correctAnswer;
-              }
+          <!-- Filter Toolbar Tabs -->
+          <div class="review-filter-tabs">
+            <button class="review-filter-btn ${(!EXAM_STATE.reviewFilter || EXAM_STATE.reviewFilter === "all") ? "active" : ""}"
+                    data-filter="all" onclick="setReviewFilter('all')">
+              <i class="fas fa-list"></i>
+              <span>الجميع (${total})</span>
+            </button>
 
-              return `
-              <div style="background: var(--bg-dark-base); border: 1px solid ${isCorr ? "rgba(34, 197, 94, 0.3)" : "rgba(239, 68, 68, 0.3)"}; border-radius: var(--radius-lg); padding: 1.25rem 1.5rem;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                  <div style="font-weight: 900; font-size: 1.05rem; color: var(--text-primary);">
-                    سؤال ${idx + 1}: ${q.questionText}
-                  </div>
-                  <div style="background: ${isCorr ? "#dcfce7" : "#fee2e2"}; color: ${isCorr ? "#15803d" : "#b91c1c"}; padding: 4px 12px; border-radius: 99px; font-weight: 800; font-size: 0.85rem;">
-                    ${isCorr ? "إجابة صحيحة" : "إجابة خاطئة"}
-                  </div>
-                </div>
+            <button class="review-filter-btn ${(EXAM_STATE.reviewFilter === "incorrect") ? "active" : ""}"
+                    data-filter="incorrect" onclick="setReviewFilter('incorrect')">
+              <i class="fas fa-circle-xmark" style="color: #f43f5e;"></i>
+              <span>الإجابات الخاطئة (${total - correct})</span>
+            </button>
 
-                <div style="font-size: 0.92rem; color: var(--text-secondary); margin-bottom: 6px;">
-                  <strong>المسموع:</strong> "${q.heardText}"
-                </div>
+            <button class="review-filter-btn ${(EXAM_STATE.reviewFilter === "correct") ? "active" : ""}"
+                    data-filter="correct" onclick="setReviewFilter('correct')">
+              <i class="fas fa-circle-check" style="color: #10b981;"></i>
+              <span>الإجابات الصحيحة (${correct})</span>
+            </button>
+          </div>
+        </div>
 
-                <div style="font-size: 0.92rem; color: ${isCorr ? "#15803d" : "#b91c1c"}; margin-bottom: 6px;">
-                  <strong>إجابتك:</strong> ${formatUserAnswerDisplay(q, userAns)}
-                </div>
-
-                ${
-                  !isCorr
-                    ? `
-                  <div style="font-size: 0.92rem; color: #15803d; margin-bottom: 6px;">
-                    <strong>الإجابة النموذجية الصحيحة:</strong> ${formatTargetAnswerDisplay(q)}
-                  </div>
-                `
-                    : ""
-                }
-
-                <div style="font-size: 0.88rem; color: var(--text-muted); background: var(--bg-card); padding: 10px 14px; border-radius: 8px; margin-top: 8px; border-right: 3px solid var(--accent-indigo);">
-                  <strong>الشرح والقاعدة المعيارية:</strong> ${q.explanation}
-                </div>
-              </div>
-            `;
-            })
-            .join("")}
+        <!-- Filtered Cards Container -->
+        <div id="review-cards-container">
+          ${renderReviewCardsHTML()}
         </div>
 
         <div style="margin-top: 2.5rem; text-align: center;">
@@ -925,4 +902,123 @@ function generateFormBoldPayload(score, pass, correct, total) {
   }
 
   return payload;
+}
+
+function setReviewFilter(filterType) {
+  EXAM_STATE.reviewFilter = filterType;
+  const container = document.getElementById("review-cards-container");
+  if (container) {
+    container.innerHTML = renderReviewCardsHTML();
+  }
+
+  document.querySelectorAll(".review-filter-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.filter === filterType);
+  });
+}
+
+function renderReviewCardsHTML() {
+  const filter = EXAM_STATE.reviewFilter || "all";
+
+  const filteredQuestions = EXAM_DATA.questions.filter((q) => {
+    const userAns = EXAM_STATE.answers[q.id];
+    let isCorr = false;
+    if (q.type === "verbatim_input") {
+      const normUser = (userAns || "").trim().replace(/\s+/g, " ");
+      const normTarget = q.targetAnswer.trim().replace(/\s+/g, " ");
+      isCorr = normUser === normTarget;
+    } else {
+      isCorr = userAns === q.correctAnswer;
+    }
+
+    const isFlg = EXAM_STATE.flagged[q.id] || false;
+
+    if (filter === "incorrect") return !isCorr;
+    if (filter === "correct") return isCorr;
+    if (filter === "flagged") return isFlg;
+    return true;
+  });
+
+  if (filteredQuestions.length === 0) {
+    return `
+      <div style="text-align: center; padding: 3rem 1.5rem; background: var(--bg-dark-base); border-radius: var(--radius-lg); color: var(--text-muted); margin-top: 1.5rem;">
+        <i class="fas fa-search-minus" style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--accent-indigo);"></i>
+        <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-primary);">لا توجد أسئلة تطابق الفلتر المحدد</div>
+      </div>
+    `;
+  }
+
+  return filteredQuestions
+    .map((q) => {
+      const origIndex = EXAM_DATA.questions.findIndex((item) => item.id === q.id);
+      const userAns = EXAM_STATE.answers[q.id];
+      let isCorr = false;
+
+      if (q.type === "verbatim_input") {
+        const normUser = (userAns || "").trim().replace(/\s+/g, " ");
+        const normTarget = q.targetAnswer.trim().replace(/\s+/g, " ");
+        isCorr = normUser === normTarget;
+      } else {
+        isCorr = userAns === q.correctAnswer;
+      }
+
+      const isUnanswered = userAns === undefined || userAns === "";
+
+      return `
+      <div class="review-question-card ${isCorr ? "is-correct" : "is-incorrect"}">
+        <!-- Top Bar -->
+        <div class="review-card-header">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span class="review-q-num">سؤال ${origIndex + 1}</span>
+            <span class="review-cat-badge"><i class="fas fa-folder-open"></i> ${getCategoryName(q.category)}</span>
+          </div>
+
+          <div class="review-status-badge ${isCorr ? "badge-success" : "badge-danger"}">
+            <i class="fas ${isCorr ? "fa-check-circle" : isUnanswered ? "fa-clock" : "fa-times-circle"}"></i>
+            <span>${isCorr ? "إجابة صحيحة" : isUnanswered ? "لم تجب (انتهى الوقت)" : "إجابة خاطئة"}</span>
+          </div>
+        </div>
+
+        <!-- Question Title -->
+        <div class="review-q-title">${q.questionText}</div>
+
+        <!-- Audio Heard Quote Box -->
+        <div class="review-audio-quote">
+          <i class="fas fa-volume-high audio-quote-icon"></i>
+          <div>
+            <div class="audio-quote-label">المسموع في التسجيل الصوتي</div>
+            <div class="audio-quote-text">"${q.heardText}"</div>
+          </div>
+        </div>
+
+        <!-- Answer Comparison Grid -->
+        <div class="review-answers-grid">
+          <div class="answer-box user-answer-box ${isCorr ? "correct-border" : "incorrect-border"}">
+            <div class="answer-box-label"><i class="fas fa-user-pen"></i> إجابتك:</div>
+            <div class="answer-box-content">${formatUserAnswerDisplay(q, userAns)}</div>
+          </div>
+
+          ${
+            !isCorr
+              ? `
+            <div class="answer-box model-answer-box">
+              <div class="answer-box-label"><i class="fas fa-circle-check"></i> الإجابة النموذجية الصحيحة:</div>
+              <div class="answer-box-content">${formatTargetAnswerDisplay(q)}</div>
+            </div>
+          `
+              : ""
+          }
+        </div>
+
+        <!-- Rule Explanation Callout -->
+        <div class="review-explanation-callout">
+          <div class="callout-header">
+            <i class="fas fa-book-bookmark"></i>
+            <span>الشرح والقاعدة المعيارية المعتمدة</span>
+          </div>
+          <div class="callout-text">${q.explanation}</div>
+        </div>
+      </div>
+    `;
+    })
+    .join("");
 }
