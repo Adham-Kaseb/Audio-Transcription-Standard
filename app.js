@@ -76,30 +76,7 @@ function renderExamLandingHTML() {
       <div class="card-glow-orb orb-top-right"></div>
       <div class="card-glow-orb orb-bottom-left"></div>
 
-      <!-- Top Crest & Pill Badge -->
-      <div class="hero-header-top">
-        <div class="hero-crest-box">
-          <i class="fas fa-shield-halved"></i>
-        </div>
-
-        <div class="exam-badge-pill">
-          <span class="badge-pulse-dot"></span>
-          <span class="badge-ar-text">اختبار التأهيل والاعتماد المعياري</span>
-          <span class="badge-en-tag" dir="ltr">MSA Verbatim</span>
-        </div>
-      </div>
-
-      <!-- Main Headline -->
-      <h1 class="exam-title-headline">
-        رحلة التحدي والاعتماد المعياري<br>
-        <span class="gradient-headline">لتفريغ صوتيات العربية الفصحى الحديثة</span>
-      </h1>
-
-      <!-- Subtext Description -->
-      <p class="exam-subtext">
-        مرحباً بك في الاختبار التأهيلي المعياري الرسمي. يتكون الاختبار من <strong>70 سؤالاً دقيقاً وموقوتاً</strong> تم إعدادها بعناية فائقة لقياس مدى إتقانك التام لقواعد التفريغ الحرفي بنسبة 100% والوسوم المعتمدة وصيغ الأرقام والحالات الصوتية المعقدة.
-      </p>
-
+ 
       <!-- Executive Metric Bar -->
       <div class="hero-metrics-bar">
         <div class="metric-chip">
@@ -816,19 +793,19 @@ function renderExamResultsHTML() {
 
           <!-- Filter Toolbar Tabs -->
           <div class="review-filter-tabs">
-            <button class="review-filter-btn ${(!EXAM_STATE.reviewFilter || EXAM_STATE.reviewFilter === "all") ? "active" : ""}"
+            <button class="review-filter-btn ${!EXAM_STATE.reviewFilter || EXAM_STATE.reviewFilter === "all" ? "active" : ""}"
                     data-filter="all" onclick="setReviewFilter('all')">
               <i class="fas fa-list"></i>
               <span>الجميع (${total})</span>
             </button>
 
-            <button class="review-filter-btn ${(EXAM_STATE.reviewFilter === "incorrect") ? "active" : ""}"
+            <button class="review-filter-btn ${EXAM_STATE.reviewFilter === "incorrect" ? "active" : ""}"
                     data-filter="incorrect" onclick="setReviewFilter('incorrect')">
               <i class="fas fa-circle-xmark" style="color: #f43f5e;"></i>
               <span>الإجابات الخاطئة (${total - correct})</span>
             </button>
 
-            <button class="review-filter-btn ${(EXAM_STATE.reviewFilter === "correct") ? "active" : ""}"
+            <button class="review-filter-btn ${EXAM_STATE.reviewFilter === "correct" ? "active" : ""}"
                     data-filter="correct" onclick="setReviewFilter('correct')">
               <i class="fas fa-circle-check" style="color: #10b981;"></i>
               <span>الإجابات الصحيحة (${correct})</span>
@@ -884,7 +861,9 @@ function attachRunnerEvents() {
 }
 
 function generateFormBoldPayload(score, pass, correct, total) {
-  const statusStr = pass ? "ناجح ومؤهل معتمد (Certified)" : "غير مؤهل (Needs Retake)";
+  const statusStr = pass
+    ? "ناجح ومؤهل معتمد (Certified)"
+    : "غير مؤهل (Needs Retake)";
   const dateStr = new Date().toLocaleString("ar-EG");
 
   let payload = `=== تقرير نتيجة اختبار التأهيل المعياري لتفريغ صوتيات MSA ===\n`;
@@ -949,7 +928,9 @@ function renderReviewCardsHTML() {
 
   return filteredQuestions
     .map((q) => {
-      const origIndex = EXAM_DATA.questions.findIndex((item) => item.id === q.id);
+      const origIndex = EXAM_DATA.questions.findIndex(
+        (item) => item.id === q.id,
+      );
       const userAns = EXAM_STATE.answers[q.id];
       let isCorr = false;
 
