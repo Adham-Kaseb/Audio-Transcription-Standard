@@ -3,9 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      دليل تفريغ وترقيم التسجيلات الصوتية | MSA Audio Transcription Guidelines
-    </title>
+    <title>مركز تفريغ الصوتيات</title>
     <meta
       name="description"
       content="الدليل المعياري الشامل وقواعد الترقيم والتوصيف لتفريغ التسجيلات الصوتية باللغة العربية الفصحى الحديثة (MSA Verbatim Transcription Guidelines)"
@@ -62,109 +60,9 @@
     <div class="orb-glow orb-2"></div>
     <div class="orb-glow orb-3"></div>
 
-    <!-- FLOATING LIGHT GLASSMORTIC NAVBAR -->
-    <nav class="navbar">
-      <div class="nav-container">
-        <a href="#" class="brand">
-          <div class="brand-icon">
-            <i class="fas fa-microphone-alt"></i>
-          </div>
-          <div>
-            <div style="line-height: 1.25; font-size: 1.2rem">
-              مركز تفريغ الصوتيات
-            </div>
-          </div>
-        </a>
 
-        <!-- Navigation Links Dropdown Menu -->
-        <div class="nav-dropdown-wrapper" id="nav-dropdown-wrapper">
-          <button
-            class="nav-dropdown-btn"
-            id="nav-dropdown-btn"
-            onclick="toggleNavDropdown(event)"
-          >
-            <i class="fas fa-bars"></i>
-            <span>أقسام المنصة</span>
-            <i class="fas fa-chevron-down nav-dropdown-arrow"></i>
-          </button>
-          <div class="nav-dropdown-menu">
-            <a
-              href="#qa-search-section"
-              class="dropdown-item"
-              onclick="closeNavDropdown()"
-            >
-              <i class="fas fa-search" style="color: #6366f1"></i>
-              <span>الإجابات الفورية</span>
-            </a>
-            <a
-              href="#text-checker-section"
-              class="dropdown-item"
-              onclick="closeNavDropdown()"
-            >
-              <i class="fas fa-spell-check" style="color: #3b82f6"></i>
-              <span>فاحص النصوص والقواعد</span>
-            </a>
-            <a
-              href="#faq-section"
-              class="dropdown-item"
-              onclick="closeNavDropdown()"
-            >
-              <i class="fas fa-question-circle" style="color: #8b5cf6"></i>
-              <span>مكتبة الأسئلة الشائعة</span>
-            </a>
-            <a
-              href="#calculator-section"
-              class="dropdown-item"
-              onclick="closeNavDropdown()"
-            >
-              <i class="fas fa-calculator" style="color: #22c55e"></i>
-              <span>معدل الإنجاز </span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </nav>
 
-    <!-- FLOATING SIDE NAVIGATOR ON SCROLL -->
-    <aside class="side-nav" id="side-nav">
-      <div class="side-nav-inner">
-        <a
-          href="#qa-search-section"
-          class="side-nav-item active"
-          data-tooltip="البحث والإجابة الفورية"
-        >
-          <i class="fas fa-search"></i>
-        </a>
-        <a
-          href="#text-checker-section"
-          class="side-nav-item"
-          data-tooltip="فاحص القواعد الفوري"
-        >
-          <i class="fas fa-spell-check"></i>
-        </a>
-        <a
-          href="#faq-section"
-          class="side-nav-item"
-          data-tooltip="الأسئلة الشائعة"
-        >
-          <i class="fas fa-question-circle"></i>
-        </a>
-        <a
-          href="#calculator-section"
-          class="side-nav-item"
-          data-tooltip=" معدل الإنجاز"
-        >
-          <i class="fas fa-calculator"></i>
-        </a>
-        <button
-          class="side-nav-item side-nav-top-btn"
-          onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
-          data-tooltip="الرجوع للأعلى"
-        >
-          <i class="fas fa-arrow-up"></i>
-        </button>
-      </div>
-    </aside>
+
 
     <!-- MAIN CONTENT CONTAINER -->
     <main class="app-container" id="main-content-container">
@@ -223,6 +121,7 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
     <script src="data.js"></script>
+    <script src="exam_data.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
